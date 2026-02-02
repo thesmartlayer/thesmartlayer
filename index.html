@@ -63,10 +63,9 @@
         </script>
 </head>
 
-<body>
-    <!-- Navigation -->
-    <n    <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
+<body>
 
 <body>
     <!-- Navigation -->
@@ -977,6 +976,13 @@ av class="navbar">
 
     <script src="script.js"></script>
 <script src="smartlayer-chatbot.js"></script>
+<script>
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on("login", () => {
+        document.location.href = "/dashboard.html";
+      });
+    }
+  </script>
 </body>
 
 </html>
