@@ -3,20 +3,490 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | The Smart Layer</title>
-    <style>
-        body { font-family: sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; background-color: #f4f7f6; }
-        .container { max-width: 800px; text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #333; margin-bottom: 20px; }
-        p { color: #666; font-size: 1.1rem; margin-bottom: 30px; }
-        .back-link { text-decoration: none; color: #007bff; font-weight: bold; }
-    </style>
+    <title>The Smart Layer - Client Dashboard</title>
+    <meta name="description" content="Client Admin Dashboard for The Smart Layer - Track AI conversations, appointments, and business visibility">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to your Dashboard</h1>
-        <p>If you are seeing this, the mountain has been climbed. The flickering has stopped because the security guard is on break.</p>
-        <a href="index.html" class="back-link">← Back to Homepage</a>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="8" fill="url(#gradient)"/>
+                        <path d="M8 16L14 10L20 16L14 22L8 16Z" fill="white"/>
+                        <path d="M14 10L20 16L24 12" stroke="white" stroke-width="2"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32">
+                                <stop offset="0%" stop-color="#3b82f6"/>
+                                <stop offset="100%" stop-color="#f59e0b"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <h1>The Smart Layer</h1>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="overview">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                    </svg>
+                    <span>Overview</span>
+                </button>
+                
+                <button class="nav-item" data-tab="leads">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                    </svg>
+                    <span>Lead Tracker</span>
+                </button>
+                
+                <button class="nav-item" data-tab="activity">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                    </svg>
+                    <span>AI Activity</span>
+                </button>
+                
+                <button class="nav-item" data-tab="visibility">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <span>Google Visibility</span>
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">JS</div>
+                    <div class="user-info">
+                        <div class="user-name">John Smith</div>
+                        <div class="user-role">Admin</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Overview Tab -->
+            <section id="overview" class="tab-content active">
+                <header class="content-header">
+                    <div>
+                        <h2>Dashboard Overview</h2>
+                        <p>Track your AI-powered business performance</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-secondary">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
+                            </svg>
+                            Export Data
+                        </button>
+                    </div>
+                </header>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                            </svg>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-label">Total AI Conversations</div>
+                            <div class="metric-value" id="total-conversations">1,247</div>
+                            <div class="metric-change positive">
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                    <path d="M6 2l4 4H7v4H5V6H2l4-4z"/>
+                                </svg>
+                                <span>+12.5% from last month</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon orange">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
+                            </svg>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-label">Appointments Booked</div>
+                            <div class="metric-value" id="appointments-booked">183</div>
+                            <div class="metric-change positive">
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                    <path d="M6 2l4 4H7v4H5V6H2l4-4z"/>
+                                </svg>
+                                <span>+8.3% conversion rate</span>
+                            </div>
+                            <div class="metric-subtitle">via Calendly integration</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon gradient">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                            </svg>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-label">Review Sentiment</div>
+                            <div class="metric-value" id="review-sentiment">94%</div>
+                            <div class="metric-change positive">
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                    <path d="M6 2l4 4H7v4H5V6H2l4-4z"/>
+                                </svg>
+                                <span>Positive feedback</span>
+                            </div>
+                            <div class="metric-subtitle">Based on 127 reviews</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-section">
+                    <div class="chart-card">
+                        <h3>Conversation Trends</h3>
+                        <div class="chart-placeholder">
+                            <canvas id="conversation-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="recent-activity">
+                        <h3>Recent Activity</h3>
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <div class="activity-icon blue">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6z"/>
+                                    </svg>
+                                </div>
+                                <div class="activity-details">
+                                    <div class="activity-title">New lead captured</div>
+                                    <div class="activity-time">2 minutes ago</div>
+                                </div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-icon orange">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M4 4a2 2 0 012-2h4a2 2 0 012 2v1h2a1 1 0 110 2h-1v7a2 2 0 01-2 2H5a2 2 0 01-2-2V7H2a1 1 0 010-2h2V4z"/>
+                                    </svg>
+                                </div>
+                                <div class="activity-details">
+                                    <div class="activity-title">Appointment scheduled</div>
+                                    <div class="activity-time">15 minutes ago</div>
+                                </div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-icon green">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                                    </svg>
+                                </div>
+                                <div class="activity-details">
+                                    <div class="activity-title">5-star review received</div>
+                                    <div class="activity-time">1 hour ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Lead Tracker Tab -->
+            <section id="leads" class="tab-content">
+                <header class="content-header">
+                    <div>
+                        <h2>Lead Tracker</h2>
+                        <p>Manage and follow up with potential clients</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 3.5a.5.5 0 01.5.5v4a.5.5 0 01-.5.5H4a.5.5 0 010-1h3.5V4a.5.5 0 01.5-.5z"/>
+                                <path fill-rule="evenodd" d="M7.5 8a.5.5 0 01.5-.5h4a.5.5 0 010 1H8.5V12a.5.5 0 01-1 0V8z"/>
+                            </svg>
+                            Add Lead
+                        </button>
+                    </div>
+                </header>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Service Needed</th>
+                                <th>Time Captured</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leads-table-body">
+                            <tr>
+                                <td>
+                                    <div class="lead-name">
+                                        <div class="lead-avatar">SM</div>
+                                        <div>
+                                            <div class="name">Sarah Martinez</div>
+                                            <div class="contact">sarah.m@email.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>AI Chatbot Integration</td>
+                                <td>Today, 2:45 PM</td>
+                                <td><span class="status-badge new">New</span></td>
+                                <td>
+                                    <button class="btn-icon" title="View details">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                            <path d="M8 4.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM2 8a6 6 0 1112 0A6 6 0 012 8z"/>
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="lead-name">
+                                        <div class="lead-avatar">JD</div>
+                                        <div>
+                                            <div class="name">James Davidson</div>
+                                            <div class="contact">james.d@company.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Google Business Optimization</td>
+                                <td>Today, 11:20 AM</td>
+                                <td><span class="status-badge contacted">Contacted</span></td>
+                                <td>
+                                    <button class="btn-icon" title="View details">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                            <path d="M8 4.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM2 8a6 6 0 1112 0A6 6 0 012 8z"/>
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="lead-name">
+                                        <div class="lead-avatar">EC</div>
+                                        <div>
+                                            <div class="name">Emily Chen</div>
+                                            <div class="contact">emily@restaurantco.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>AI Customer Service</td>
+                                <td>Yesterday, 4:15 PM</td>
+                                <td><span class="status-badge qualified">Qualified</span></td>
+                                <td>
+                                    <button class="btn-icon" title="View details">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                            <path d="M8 4.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM2 8a6 6 0 1112 0A6 6 0 012 8z"/>
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="lead-name">
+                                        <div class="lead-avatar">MT</div>
+                                        <div>
+                                            <div class="name">Michael Torres</div>
+                                            <div class="contact">m.torres@shop.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Review Management System</td>
+                                <td>Feb 30, 9:30 AM</td>
+                                <td><span class="status-badge scheduled">Scheduled</span></td>
+                                <td>
+                                    <button class="btn-icon" title="View details">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                            <path d="M8 4.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM2 8a6 6 0 1112 0A6 6 0 012 8z"/>
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- AI Activity Tab -->
+            <section id="activity" class="tab-content">
+                <header class="content-header">
+                    <div>
+                        <h2>AI Activity</h2>
+                        <p>Monitor AI conversation performance and insights</p>
+                    </div>
+                    <div class="header-actions">
+                        <select class="select-filter">
+                            <option>Last 7 days</option>
+                            <option>Last 30 days</option>
+                            <option>Last 90 days</option>
+                        </select>
+                    </div>
+                </header>
+
+                <div class="activity-grid">
+                    <div class="activity-stat-card">
+                        <h4>Response Time</h4>
+                        <div class="stat-value">0.8s</div>
+                        <div class="stat-subtitle">Average response time</div>
+                    </div>
+                    
+                    <div class="activity-stat-card">
+                        <h4>Resolution Rate</h4>
+                        <div class="stat-value">87%</div>
+                        <div class="stat-subtitle">Questions answered without escalation</div>
+                    </div>
+                    
+                    <div class="activity-stat-card">
+                        <h4>Peak Hours</h4>
+                        <div class="stat-value">2-5 PM</div>
+                        <div class="stat-subtitle">Most active conversation period</div>
+                    </div>
+                </div>
+
+                <div class="conversation-log">
+                    <h3>Recent Conversations</h3>
+                    <div class="log-item">
+                        <div class="log-header">
+                            <span class="log-user">Anonymous Visitor</span>
+                            <span class="log-time">5 minutes ago</span>
+                        </div>
+                        <div class="log-summary">Asked about pricing for AI chatbot implementation • 8 messages • Lead captured</div>
+                        <div class="log-tags">
+                            <span class="tag">Pricing</span>
+                            <span class="tag">Chatbot</span>
+                        </div>
+                    </div>
+                    
+                    <div class="log-item">
+                        <div class="log-header">
+                            <span class="log-user">Returning Customer</span>
+                            <span class="log-time">23 minutes ago</span>
+                        </div>
+                        <div class="log-summary">Follow-up on Google Business optimization • 5 messages • Appointment booked</div>
+                        <div class="log-tags">
+                            <span class="tag">Google</span>
+                            <span class="tag">Follow-up</span>
+                        </div>
+                    </div>
+                    
+                    <div class="log-item">
+                        <div class="log-header">
+                            <span class="log-user">New Visitor</span>
+                            <span class="log-time">1 hour ago</span>
+                        </div>
+                        <div class="log-summary">General inquiry about AI solutions • 3 messages • Information provided</div>
+                        <div class="log-tags">
+                            <span class="tag">General Inquiry</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Google Visibility Tab -->
+            <section id="visibility" class="tab-content">
+                <header class="content-header">
+                    <div>
+                        <h2>Google Visibility</h2>
+                        <p>Track your Google Business presence and performance</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-secondary">Refresh Data</button>
+                    </div>
+                </header>
+
+                <div class="visibility-grid">
+                    <div class="visibility-card">
+                        <h4>Google Search Impressions</h4>
+                        <div class="visibility-value">12,456</div>
+                        <div class="visibility-change positive">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                <path d="M6 2l4 4H7v4H5V6H2l4-4z"/>
+                            </svg>
+                            +18% vs last month
+                        </div>
+                    </div>
+                    
+                    <div class="visibility-card">
+                        <h4>Profile Views</h4>
+                        <div class="visibility-value">3,287</div>
+                        <div class="visibility-change positive">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                <path d="M6 2l4 4H7v4H5V6H2l4-4z"/>
+                            </svg>
+                            +24% vs last month
+                        </div>
+                    </div>
+                    
+                    <div class="visibility-card">
+                        <h4>Direction Requests</h4>
+                        <div class="visibility-value">892</div>
+                        <div class="visibility-change positive">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                <path d="M6 2l4 4H7v4H5V6H2l4-4z"/>
+                            </svg>
+                            +15% vs last month
+                        </div>
+                    </div>
+                    
+                    <div class="visibility-card">
+                        <h4>Phone Calls</h4>
+                        <div class="visibility-value">234</div>
+                        <div class="visibility-change positive">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                <path d="M6 2l4 4H7v4H5V6H2l4-4z"/>
+                            </svg>
+                            +9% vs last month
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-section">
+                    <h3>Recent Google Reviews</h3>
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="review-author">
+                                <div class="review-avatar">LJ</div>
+                                <div>
+                                    <div class="review-name">Lisa Johnson</div>
+                                    <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                                </div>
+                            </div>
+                            <div class="review-date">2 days ago</div>
+                        </div>
+                        <div class="review-text">"The Smart Layer transformed our customer service with their AI chatbot. Response times are incredible and customers love it!"</div>
+                    </div>
+                    
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="review-author">
+                                <div class="review-avatar">RK</div>
+                                <div>
+                                    <div class="review-name">Robert Kim</div>
+                                    <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                                </div>
+                            </div>
+                            <div class="review-date">5 days ago</div>
+                        </div>
+                        <div class="review-text">"Outstanding service! They helped optimize our Google Business profile and we've seen a 40% increase in leads."</div>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
+
+    <script src="dashboard.js"></script>
 </body>
 </html>
