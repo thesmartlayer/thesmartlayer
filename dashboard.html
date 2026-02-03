@@ -4,49 +4,63 @@
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Smart Layer - Client Dashboard</title>
+    <title>The Smart Layer | Garage Portal</title>
     <link rel="stylesheet" href="dashboard-styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="dashboard-container">
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <h1>The Smart Layer</h1>
-                </div>
-            </div>
+            <div class="sidebar-header"><h1>The Smart Layer</h1></div>
             <nav class="sidebar-nav">
-                <button class="nav-item active" data-tab="overview"><span>Overview</span></button>
-                <button class="nav-item" data-tab="leads"><span>Lead Tracker</span></button>
-                <button class="nav-item" data-tab="activity"><span>AI Activity</span></button>
-                <button class="nav-item" data-tab="visibility"><span>Google Visibility</span></button>
-                
-                <button class="nav-item" id="logout-btn" style="margin-top: auto; color: #f59e0b; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 10px; width: 100%;">
+                <button class="nav-item active" data-tab="overview"><span>Shop Overview</span></button>
+                <button class="nav-item" data-tab="work-log"><span>Mechanic's Work Log</span></button>
+                <button class="nav-item" data-tab="leads"><span>Incoming Leads</span></button>
+                <button class="nav-item" id="logout-btn" style="margin-top: auto; color: #f59e0b; background: none; border: none; cursor: pointer;">
                     <span>Logout</span>
                 </button>
             </nav>
         </aside>
 
         <main class="main-content">
-            <section id="overview" class="tab-content active"><h2>Dashboard Overview</h2></section>
-            <section id="leads" class="tab-content"><h2>Lead Tracker</h2></section>
-            <section id="activity" class="tab-content"><h2>AI Activity</h2></section>
-            <section id="visibility" class="tab-content"><h2>Google Visibility</h2></section>
+            <section id="overview" class="tab-content active">
+                <h2>Today's Shop Stats</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card"><div class="metric-label">Calls Handled</div><div class="metric-value">24</div></div>
+                    <div class="metric-card"><div class="metric-label">Appts Booked</div><div class="metric-value">6</div></div>
+                </div>
+            </section>
+
+            <section id="work-log" class="tab-content">
+                <h2>Customer Issue Tracker</h2>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Vehicle</th>
+                                <th>Ongoing Issue Summary</th>
+                                <th>Last AI Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mike Ross</td>
+                                <td>2019 RAM 1500</td>
+                                <td style="color: #f59e0b;">Transmission slip reported in winter</td>
+                                <td>AI Call: "Client mentioned a clunk when shifting into Reverse."</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </main>
     </div>
 
     <script src="dashboard.js"></script>
     <script>
-        // This makes the Logout button actually DO something
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            netlifyIdentity.logout();
-        });
-
-        // This tells the site to kick you to the home page AFTER logging out
-        netlifyIdentity.on('logout', () => {
-            window.location.href = 'index.html?loggedout=true';
-        });
+        document.getElementById('logout-btn').addEventListener('click', () => { netlifyIdentity.logout(); });
+        netlifyIdentity.on('logout', () => { window.location.href = 'index.html?loggedout=true'; });
     </script>
 </body>
 </html>
