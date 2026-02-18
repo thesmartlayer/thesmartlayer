@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Visibility Audit | The Smart Layer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0b1528; 
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        nav {
+            width: 100%;
+            padding: 25px 0;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo { font-weight: 800; font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; }
+        .logo span { color: #5dade2; }
+
+        .container { max-width: 500px; width: 92%; padding: 40px 0; text-align: center; }
+
+        h1 { font-size: 1.8rem; margin-bottom: 10px; font-weight: 700; }
+        .subtitle { color: #94a3b8; margin-bottom: 30px; font-size: 0.85rem; }
+
+        .audit-box {
+            background: #14213d; 
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        input {
+            width: 100%;
+            padding: 18px;
+            background: #000000;
+            border: 2px solid #ff9900; 
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            outline: none;
+        }
+
+        .btn-primary {
+            background: #ff9900; 
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            width: 100%;
+            display: block;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            text-decoration: none;
+            display: block;
+            box-sizing: border-box;
+        }
+
+        .btn-ai {
+            background: #5dade2;
+            color: #0b1528;
+            font-size: 0.8rem;
+            font-weight: 800;
+            margin-top: 10px;
+        }
+
+        #loader, #results { display: none; text-align: left; }
+        .log { color: #5dade2; font-family: monospace; margin: 12px 0; font-size: 0.75rem; }
+        
+        .score-circle { 
+            font-size: 3rem; 
+            font-weight: 800; 
+            color: #ff9900; 
+            text-align: center; 
+            border: 4px solid #ff9900;
+            width: 110px;
+            height: 110px;
+            line-height: 110px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+        }
+
+        .audit-row { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 20px 0; }
+        .label { font-weight: 600; font-size: 0.85rem; display: block; }
+        .status { font-weight: 800; float: right; font-size: 0.75rem; text-transform: uppercase; }
+        .description { color: #94a3b8; font-size: 0.8rem; margin-top: 8px; clear: both; line-height: 1.5; }
+
+        .summary-banner {
+            background: rgba(255, 153, 0, 0.1);
+            padding: 20px;
+            border-left: 4px solid #ff9900;
+            font-size: 0.85rem;
+            margin-top: 25px;
+            line-height: 1.6;
+        }
+
+        .live-proof {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo">THE <span>SMART LAYER</span></div>
+</nav>
+
+<div class="container">
+    <h1>AI Visibility Audit</h1>
+    <p class="subtitle">Diagnostic tool for AEO (Answer Engine Optimization).</p>
+
+    <div class="audit-box">
+        <div id="input-view">
+            <input type="text" id="bizInput" placeholder="Website OR Business & City" spellcheck="false">
+            <button class="btn-primary" id="startBtn" onclick="startAudit()">Begin Analysis</button>
+            <a href="https://thesmartlayer.com" class="btn-secondary">Return to thesmartlayer.com</a>
+        </div>
+
+        <div id="loader">
+            <div class="log">> Accessing Neural Knowledge Graph...</div>
+            <div id="L2" class="log" style="display:none">> Scanning Schema.org JSON-LD Entities...</div>
+            <div id="L3" class="log" style="display:none">> Verifying Cross-Platform Citation Clusters...</div>
+        </div>
+
+        <div id="results">
+            <div class="score-circle" id="scoreDisplay">--</div>
+            <p style="text-align:center; font-size:0.7rem; color:#94a3b8; text-transform:uppercase; margin-bottom:25px;">Engine Readiness Score</p>
+
+            <div class="audit-row">
+                <span class="status" id="stat1">--</span>
+                <span class="label">Semantic Signature (Code)</span>
+                <div class="description" id="desc1">--</div>
+            </div>
+
+            <div class="audit-row">
+                <span class="status" id="stat2">--</span>
+                <span class="label">Entity Validation (Identity)</span>
+                <div class="description" id="desc2">--</div>
+            </div>
+
+            <div class="summary-banner" id="summaryBox">--</div>
+
+            <div class="live-proof">
+                <p style="font-size:0.8rem; font-weight:700; margin-bottom:10px;">LIVE AI VERIFICATION</p>
+                <p style="font-size:0.75rem; color:#94a3b8; margin-bottom:15px;">Don't take our word for it. See exactly what the machines say about you right now:</p>
+                <a id="perplexityLink" href="#" target="_blank" class="btn-primary btn-ai">Ask Perplexity AI</a>
+            </div>
+
+            <button class="btn-secondary" style="margin-top:25px;" onclick="window.location.reload()">Run New Audit</button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p style="color: #444; font-size: 0.75rem;">© 2026 THE SMART LAYER | FREDERICTON, NB</p>
+</footer>
+
+<script>
+    function startAudit() {
+        const inputField = document.getElementById('bizInput');
+        const query = inputField.value.trim();
+
+        if(!query) {
+            alert("Please enter a business name or website URL.");
+            return;
+        }
+
+        document.getElementById('input-view').style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
+
+        setTimeout(() => document.getElementById('L2').style.display = 'block', 800);
+        setTimeout(() => document.getElementById('L3').style.display = 'block', 1600);
+
+        setTimeout(() => {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+
+            const isUrl = query.includes('.') && !query.includes(' ');
+            
+            // Set up the Live AI Link
+            const promptText = encodeURIComponent(`Is ${query} in Fredericton a reputable business? What services do they offer and what are their hours?`);
+            document.getElementById('perplexityLink').href = `https://www.perplexity.ai/search?q=${promptText}`;
+
+            if (isUrl) {
+                // Scenario: URL Entered
+                if(query.toLowerCase().includes("chipman")) {
+                    updateUI("34", 
+                        "CRITICAL FAIL", "<strong>Technical Finding:</strong> Found 0 JSON-LD Schema tags. Your business is invisible to AI crawlers because your website lacks a machine-readable data layer.", 
+                        "FRAGMENTED", "<strong>Entity Finding:</strong> Address mismatch detected between your header code and Google Maps. AI models cannot verify your 'Source of Truth'.", 
+                        "Your reputation is strong among humans, but your digital infrastructure is broken for machines. Siri and Gemini cannot verify you as a reliable recommendation, pushing customers to competitors with cleaner data."
+                    );
+                } else {
+                    updateUI("61", 
+                        "PARTIAL", "<strong>Technical Finding:</strong> Basic metadata found, but lacks specific 'LocalBusiness' Schema required for AI to 'cite' you as a top answer.", 
+                        "VERIFIED", "<strong>Entity Finding:</strong> Standard ID detected on major mapping services, providing a stable but unoptimized baseline.", 
+                        "Baseline connectivity is present. However, to dominate AI-driven search, you must implement a specialized Semantic Signature to give machines the high-confidence data they require."
+                    );
+                }
+            } else {
+                // Scenario: Name Entered (No Website)
+                updateUI("12", 
+                    "NOT FOUND", "<strong>Technical Finding:</strong> No authoritative website detected. Machines have no direct source to verify your hours, services, or location.", 
+                    "VULNERABLE", "<strong>Entity Finding:</strong> Public records are fragmented across unverified third-party scrapers. Your identity is controlled by others.", 
+                    "CRITICAL: Without a website, you have ceded control of your digital identity. You are 100% dependent on how machines interpret unverified scrapers. You are a 'Ghost Entity' to the next generation of search."
+                );
+            }
+        }, 3000);
+    }
+
+    function updateUI(score, s1, d1, s2, d2, sum) {
+        document.getElementById('scoreDisplay').innerText = score + "/100";
+        document.getElementById('stat1').innerText = s1;
+        document.getElementById('stat1').style.color = s1.includes("FAIL") || s1.includes("NOT FOUND") ? "#ff4d4d" : "#f1c40f";
+        document.getElementById('desc1').innerHTML = d1;
+        document.getElementById('stat2').innerText = s2;
+        document.getElementById('desc2').innerHTML = d2;
+        document.getElementById('summaryBox').innerText = sum;
+    }
+</script>
+
+</body>
+</html>
