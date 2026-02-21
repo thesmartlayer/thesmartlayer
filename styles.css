@@ -877,7 +877,7 @@ body {
 }
 
 .feature-list li::before {
-    content: '✓';
+    content: '✔';
     position: absolute;
     left: 0;
     color: var(--blue-primary);
@@ -1325,7 +1325,7 @@ body {
 }
 
 .industry-use-cases li::before {
-    content: '✓';
+    content: '✔';
     position: absolute;
     left: 0;
     color: var(--blue-primary);

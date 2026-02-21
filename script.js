@@ -128,27 +128,27 @@ const demoNotice = document.getElementById('demo-notice');
 
 const industryUrls = {
     auto: {
-        url: 'https://demositeauto.netlify.app',
+        url: 'https://auto.thesmartlayer.com',
         name: 'Auto Repair'
     },
     dental: {
-        url: 'https://demositeauto.netlify.app',
+        url: '/coming-soon.html',
         name: 'Dental Office'
     },
     hvac: {
-        url: 'https://demositeauto.netlify.app',
+        url: '/coming-soon.html',
         name: 'HVAC Services'
     },
     home: {
-        url: 'https://demositeauto.netlify.app',
+        url: '/coming-soon.html',
         name: 'Home Services'
     },
     restaurant: {
-        url: 'https://demositeauto.netlify.app',
+        url: '/coming-soon.html',
         name: 'Restaurant'
     },
     professional: {
-        url: 'https://demositeauto.netlify.app',
+        url: '/coming-soon.html',
         name: 'Professional Services'
     }
 };
@@ -233,24 +233,29 @@ faqQuestions.forEach(question => {
 // ==========================================
 // FORM SUBMISSION (Contact Form)
 // ==========================================
-const contactForm = document.getElementById('contact-form');
+const contactForm = document.getElementById('contactForm');
 
 if (contactForm) {
     contactForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        // Get form data
         const formData = new FormData(contactForm);
-        const data = Object.fromEntries(formData);
-
-        console.log('Form submitted:', data);
-
-        // Here you would typically send the data to your backend
-        // For now, just show a success message
-        alert('Thank you for your interest! We\'ll be in touch soon.');
-
-        // Reset form
-        contactForm.reset();
+        
+        fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(formData).toString()
+        })
+        .then(response => {
+            if (response.ok) {
+                contactForm.innerHTML = '<div style="text-align: center; padding: 3rem 0;"><h3 style="color: var(--blue-primary); margin-bottom: 1rem;">Thank You!</h3><p style="color: var(--gray-300);">We\'ll be in touch within 24 hours.</p></div>';
+            } else {
+                alert('Something went wrong. Please email us directly at contact@thesmartlayer.com');
+            }
+        })
+        .catch(() => {
+            alert('Connection error. Please email us directly at contact@thesmartlayer.com');
+        });
     });
 }
 
