@@ -3,83 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free AI Visibility Audit | THE SMART LAYER</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>AI Visibility Diagnostic | The Smart Layer</title>
     <style>
-        :root { --navy: #0b1528; --blue: #14213d; --orange: #ff9900; --cyan: #5dade2; --gray: #94a3b8; }
-        body { background-color: var(--navy); color: #fff; font-family: 'Inter', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        
-        /* HEADER WITH NAVIGATION */
-        nav { 
-            width: 100%; 
-            padding: 20px 0; 
-            border-bottom: 1px solid rgba(255,255,255,0.1); 
-            display: flex; 
-            justify-content: space-around; 
-            align-items: center;
-            background: rgba(11, 21, 40, 0.5);
-            backdrop-filter: blur(10px);
+        :root {
+            --navy: #0a192f;
+            --orange: #ff8c00;
+            --cyan: #00f2ff;
+            --grey: #1e1e1e;
+            --white: #e6f1ff;
         }
-        .header-logo-img { max-height: 50px; width: auto; }
-        .nav-link { color: var(--gray); text-decoration: none; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-        .nav-link:hover { color: var(--cyan); }
 
-        .container { max-width: 550px; width: 92%; padding: 60px 0; text-align: center; }
-        h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 15px; letter-spacing: -1px; }
-        .subtitle { color: var(--gray); margin-bottom: 40px; font-size: 1rem; line-height: 1.6; }
+        body {
+            background-color: var(--navy);
+            color: var(--white);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-        /* AUDIT FORM CARD */
-        .audit-form-card { background: var(--blue); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); padding: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); text-align: left; }
-        
-        label { display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--cyan); margin-bottom: 8px; letter-spacing: 1px; }
-        input { width: 100%; padding: 16px; background: #000; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; font-size: 1rem; margin-bottom: 25px; box-sizing: border-box; outline: none; transition: border 0.3s; }
-        input:focus { border-color: var(--orange); }
-        
-        .btn-primary { background: var(--orange); color: #fff; border: none; padding: 20px; border-radius: 8px; font-weight: 800; text-transform: uppercase; cursor: pointer; width: 100%; text-decoration: none; display: block; text-align: center; font-size: 1rem; box-shadow: 0 4px 15px rgba(255, 153, 0, 0.3); }
-        .btn-primary:hover { background: #e68a00; transform: translateY(-1px); }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 40px 20px;
+            text-align: center;
+        }
 
-        .optional-tag { font-size: 0.65rem; color: var(--gray); font-weight: 400; text-transform: none; margin-left: 5px; }
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--orange);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
 
-        .footer-cta { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; }
-        .btn-outline { display: inline-block; padding: 12px 25px; border: 1px solid var(--gray); color: var(--gray); text-decoration: none; border-radius: 6px; font-size: 0.85rem; font-weight: 700; transition: all 0.3s; }
-        .btn-outline:hover { border-color: var(--white); color: var(--white); }
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--orange);
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        p.subtitle {
+            color: var(--cyan);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .diagnostic-box {
+            background: var(--grey);
+            border: 1px solid var(--orange);
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(255, 140, 0, 0.2);
+            text-align: left;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--orange);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        input[type="text"], input[type="url"], input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: white;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--cyan);
+            box-shadow: 0 0 5px var(--cyan);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: var(--orange);
+            border: none;
+            border-radius: 4px;
+            color: var(--navy);
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: #e67e00;
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .footer a { color: var(--cyan); text-decoration: none; }
     </style>
 </head>
 <body>
 
-<nav>
-    <a href="https://thesmartlayer.com">
-        <img src="image_01d35f.jpg" alt="THE SMART LAYER" class="header-logo-img">
-    </a>
-    <a href="https://thesmartlayer.com" class="nav-link">Back to Homepage</a>
-</nav>
+    <div class="container">
+        <div class="logo">The Smart Layer</div>
+        <h1>AI Visibility Diagnostic</h1>
+        <p class="subtitle">Assigning an AI Mechanic for your 24-hour manual audit.</p>
 
-<div class="container">
-    <h1>Is Your Business Invisible?</h1>
-    <p class="subtitle">AI search models cannot recommend what they cannot verify. Get a manual, expert-led diagnostic of your digital infrastructure.</p>
+        <div class="diagnostic-box">
+            <form action="#" method="POST">
+                <div class="form-group">
+                    <label for="url">Business Property URL</label>
+                    <input type="url" id="url" name="url" placeholder="https://www.yourbusiness.com" required>
+                </div>
 
-    <div class="audit-form-card">
-        <form action="#" method="POST">
-            <label>Business Name & City</label>
-            <input type="text" name="business" placeholder="e.g. Chipman Tire, Fredericton" required>
+                <div class="form-group">
+                    <label for="rival">Top Local Rival</label>
+                    <input type="text" id="rival" name="rival" placeholder="e.g., Chipman Auto Care" required>
+                </div>
 
-            <label>Website URL <span class="optional-tag">(Optional)</span></label>
-            <input type="url" name="website" placeholder="https://yourshop.com (Leave blank if none)">
+                <div class="form-group">
+                    <label for="service">Core Service Focus</label>
+                    <input type="text" id="service" name="service" placeholder="e.g., Brake repair or Kids Martial Arts" required>
+                </div>
 
-            <label>Email Address</label>
-            <input type="email" name="email" placeholder="Where should we send your report?" required>
+                <div class="form-group">
+                    <label for="contact">Where should we send the report?</label>
+                    <input type="text" id="contact" name="contact" placeholder="Email or Phone Number" required>
+                </div>
 
-            <button type="submit" class="btn-primary">Request Manual Audit</button>
-        </form>
+                <button type="submit" class="btn-submit">Uplink Data & Begin Audit</button>
+            </form>
+        </div>
+
+        <div class="footer">
+            <p>Serving Central New Brunswick’s Service Industry</p>
+            <p>Call or Text: <a href="tel:18554042424">(855) 404-AIAI (2424)</a></p>
+        </div>
     </div>
-
-    <div class="footer-cta">
-        <p style="font-size: 0.85rem; color: var(--gray); margin-bottom: 20px;">Want to see how we build the Machine-Readable Layer?</p>
-        <a href="https://thesmartlayer.com" class="btn-outline">Visit thesmartlayer.com</a>
-    </div>
-    
-    <p style="margin-top: 50px; font-size: 0.7rem; color: #444; letter-spacing: 1px;">© 2026 THE SMART LAYER | FREDERICTON, NB | NO GIMMICKS.</p>
-</div>
 
 </body>
 </html>

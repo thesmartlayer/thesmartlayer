@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Smart Layer — CEO Mission Control</title>
+    <meta name="description" content="Private CEO Dashboard for The Smart Layer. Mission control for client management, scheduling, and AI operations.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FullCalendar -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        ceo: {
+                            bg: '#0a0c10',
+                            surface: '#0f1117',
+                            card: '#161922',
+                            cardHover: '#1c2030',
+                            border: '#1e2235',
+                            borderLight: '#2a2f45',
+                            text: '#e2e8f0',
+                            textMuted: '#7a8299',
+                            green: '#22c55e',
+                            greenGlow: 'rgba(34,197,94,0.15)',
+                            red: '#ef4444',
+                            redGlow: 'rgba(239,68,68,0.15)',
+                            yellow: '#eab308',
+                            yellowGlow: 'rgba(234,179,8,0.15)',
+                            blue: '#3b82f6',
+                            blueGlow: 'rgba(59,130,246,0.15)',
+                            purple: '#a855f7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #0a0c10;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f1117; }
+        ::-webkit-scrollbar-thumb { background: #2a2f45; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3a3f55; }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(22, 25, 34, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(30, 34, 53, 0.6);
+            border-radius: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            border-color: rgba(42, 47, 69, 0.9);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        /* Status Pulse */
+        .pulse-green { animation: pulseGreen 2s infinite; }
+        .pulse-yellow { animation: pulseYellow 2.5s infinite; }
+        .pulse-red { animation: pulseRed 1.5s infinite; }
+
+        @keyframes pulseGreen {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+        }
+        @keyframes pulseYellow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(234,179,8,0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(234,179,8,0); }
+        }
+        @keyframes pulseRed {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+        }
+
+        /* KPI Glow */
+        .kpi-green { background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.02)); border: 1px solid rgba(34,197,94,0.2); }
+        .kpi-blue { background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(59,130,246,0.02)); border: 1px solid rgba(59,130,246,0.2); }
+        .kpi-purple { background: linear-gradient(135deg, rgba(168,85,247,0.08), rgba(168,85,247,0.02)); border: 1px solid rgba(168,85,247,0.2); }
+
+        /* FullCalendar Overrides */
+        .fc {
+            --fc-border-color: #1e2235;
+            --fc-button-bg-color: #161922;
+            --fc-button-border-color: #2a2f45;
+            --fc-button-text-color: #e2e8f0;
+            --fc-button-hover-bg-color: #1c2030;
+            --fc-button-hover-border-color: #3a3f55;
+            --fc-button-active-bg-color: #22c55e;
+            --fc-button-active-border-color: #22c55e;
+            --fc-today-bg-color: rgba(34,197,94,0.06);
+            --fc-page-bg-color: transparent;
+            --fc-neutral-bg-color: #0f1117;
+            --fc-event-bg-color: #22c55e;
+            --fc-event-border-color: #16a34a;
+            --fc-event-text-color: #fff;
+            --fc-now-indicator-color: #ef4444;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+        }
+        .fc .fc-col-header-cell-cushion,
+        .fc .fc-daygrid-day-number,
+        .fc .fc-timegrid-slot-label-cushion { color: #7a8299; font-weight: 500; }
+        .fc .fc-timegrid-slot { height: 40px; }
+        .fc .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700; color: #e2e8f0; }
+        .fc .fc-button { font-size: 0.75rem; border-radius: 8px; padding: 6px 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .fc .fc-button:focus { box-shadow: none; }
+        .fc .fc-event { border-radius: 6px; padding: 2px 6px; font-size: 0.7rem; font-weight: 600; border: none; }
+        .fc .fc-timegrid-event .fc-event-main { padding: 4px 6px; }
+        .fc .fc-scrollgrid { border: none; }
+        .fc .fc-scrollgrid td, .fc .fc-scrollgrid th { border-color: #1e2235; }
+
+        /* Deep Work Overlay */
+        .deep-work-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 12, 16, 0.65);
+            backdrop-filter: blur(2px);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            pointer-events: all;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        .deep-work-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Deep Work Event */
+        .fc-event.deep-work-event {
+            background: linear-gradient(135deg, rgba(168,85,247,0.3), rgba(59,130,246,0.3)) !important;
+            border-left: 3px solid #a855f7 !important;
+            color: #c4b5fd !important;
+        }
+
+        /* AI Terminal */
+        .ai-terminal {
+            background: #0a0c10;
+            border: 1px solid #1e2235;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            color: #22c55e;
+            overflow-y: auto;
+            max-height: 180px;
+        }
+        .ai-terminal .cursor-blink {
+            display: inline-block;
+            width: 7px;
+            height: 14px;
+            background: #22c55e;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Toggle Switch */
+        .toggle-track {
+            width: 44px; height: 24px;
+            background: #1e2235;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .toggle-track.active { background: #a855f7; }
+        .toggle-thumb {
+            width: 18px; height: 18px;
+            background: #e2e8f0;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px; left: 3px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+        .toggle-track.active .toggle-thumb {
+            transform: translateX(20px);
+        }
+
+        /* Subtle gradient border on selected nav */
+        .nav-active {
+            background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(59,130,246,0.05));
+            border-left: 2px solid #22c55e;
+        }
+
+        /* LifeOS task checkbox */
+        .ceo-checkbox {
+            appearance: none; -webkit-appearance: none;
+            width: 18px; height: 18px;
+            border: 2px solid #2a2f45;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        .ceo-checkbox:checked {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+        .ceo-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            left: 4px; top: 1px;
+            width: 5px; height: 9px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Micro-animation for cards on load */
+        .animate-in {
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile bottom bar */
+        .mobile-bottom-bar {
+            display: none;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(15,17,23,0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid #1e2235;
+            z-index: 100;
+            padding: 8px 0;
+        }
+
+        /* Skeleton loading shimmer */
+        .shimmer {
+            background: linear-gradient(90deg, #161922 25%, #1c2030 50%, #161922 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        @media (max-width: 1024px) {
+            .desktop-sidebar { display: none !important; }
+            .mobile-bottom-bar { display: flex !important; }
+            .main-grid { grid-template-columns: 1fr !important; }
+            .right-panel { order: -1; }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Loading overlay while checking auth -->
+    <div id="auth-loading" style="position: fixed; inset: 0; background: #0a0c10; z-index: 99999; display: flex; align-items: center; justify-content: center;">
+        <div style="text-align: center;">
+            <div style="width: 40px; height: 40px; border: 3px solid #1e2235; border-top-color: #22c55e; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;"></div>
+            <p style="color: #7a8299; font-size: 14px;">Loading dashboard...</p>
+        </div>
+        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    </div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// ███ MASTER STATE — Single Source of Truth ███
+// ═══════════════════════════════════════════════════════════════
+const masterState = {
+    ceo: {
+        name: "John",
+        title: "CEO & Founder",
+        company: "The Smart Layer",
+        avatar: null,
+    },
+
+    kpis: {
+        mrr: 12480,
+        mrrGrowth: 18.3,
+        totalClients: 7,
+        activeAutomations: 23,
+        hoursReclaimed: 164,
+        pipeline: 34500,
+    },
+
+    clients: [
+        { id: 1, name: "Chipman Auto Care",      status: "green",  leads: 34, hoursSaved: 22, plan: "Growth",    mrr: 2200 },
+        { id: 2, name: "Maritime Dental Group",   status: "green",  leads: 28, hoursSaved: 18, plan: "Pro",       mrr: 1800 },
+        { id: 3, name: "Fredericton Fitness Co.", status: "yellow", leads: 12, hoursSaved: 8,  plan: "Starter",   mrr: 900  },
+        { id: 4, name: "Atlantic Home Services",  status: "green",  leads: 41, hoursSaved: 26, plan: "Enterprise", mrr: 3200 },
+        { id: 5, name: "Moncton Legal Partners",  status: "red",    leads: 5,  hoursSaved: 3,  plan: "Growth",    mrr: 1500 },
+        { id: 6, name: "Sussex Realty Group",      status: "green",  leads: 19, hoursSaved: 14, plan: "Pro",       mrr: 1600 },
+        { id: 7, name: "NB Craft Brewing Co.",     status: "yellow", leads: 9,  hoursSaved: 6,  plan: "Starter",   mrr: 1280 },
+    ],
+
+    calendarEvents: [
+        { title: "Client Onboarding — NB Craft",  start: "2026-02-16T09:00:00", end: "2026-02-16T10:30:00", color: "#22c55e" },
+        { title: "Pipeline Review",               start: "2026-02-16T11:00:00", end: "2026-02-16T12:00:00", color: "#3b82f6" },
+        { title: "AI Workflow Sprint",             start: "2026-02-16T14:00:00", end: "2026-02-16T16:00:00", color: "#a855f7" },
+        { title: "Chipman Monthly Check-in",       start: "2026-02-17T10:00:00", end: "2026-02-17T11:00:00", color: "#22c55e" },
+        { title: "Sales Call — Prospect",          start: "2026-02-17T13:00:00", end: "2026-02-17T13:45:00", color: "#eab308" },
+        { title: "Team Stand-up",                  start: "2026-02-18T09:00:00", end: "2026-02-18T09:30:00", color: "#3b82f6" },
+        { title: "Content Strategy Session",       start: "2026-02-18T15:00:00", end: "2026-02-18T16:30:00", color: "#22c55e" },
+        { title: "Atlantic Home Review",           start: "2026-02-19T10:00:00", end: "2026-02-19T11:30:00", color: "#22c55e" },
+        { title: "Investor Prep",                  start: "2026-02-19T14:00:00", end: "2026-02-19T15:00:00", color: "#eab308" },
+        { title: "Legal Partners Rescue Plan",     start: "2026-02-20T09:00:00", end: "2026-02-20T11:00:00", color: "#ef4444" },
+    ],
+
+    ceoTasks: [
+        { id: 1, text: "Finalize Q1 pricing model for Enterprise tier",  done: false },
+        { id: 2, text: "Review and approve new RAG pipeline architecture", done: false },
+        { id: 3, text: "Record CEO weekly update video for team",        done: false },
+    ],
+
+    aiModels: [
+        { id: "gpt4o",       name: "GPT-4o",            badge: "OpenAI" },
+        { id: "claude35",    name: "Claude 3.5 Sonnet",  badge: "Anthropic" },
+        { id: "smartlayer",  name: "The Smart Layer",    badge: "Custom RAG" },
+    ],
+
+    deepWorkActive: false,
+};
+
+// ═══════════════════════════════════════════════════════════════
+// ███ UTILITY FUNCTIONS ███
+// ═══════════════════════════════════════════════════════════════
+function formatCurrency(n) {
+    return '$' + n.toLocaleString('en-US');
+}
+
+function getStatusColor(status) {
+    return status === 'green' ? '#22c55e' : status === 'yellow' ? '#eab308' : '#ef4444';
+}
+
+function getStatusLabel(status) {
+    return status === 'green' ? 'Healthy' : status === 'yellow' ? 'Action Needed' : 'Critical';
+}
+
+function getStatusPulseClass(status) {
+    return status === 'green' ? 'pulse-green' : status === 'yellow' ? 'pulse-yellow' : 'pulse-red';
+}
+
+function getGreeting() {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good Morning';
+    if (h < 17) return 'Good Afternoon';
+    return 'Good Evening';
+}
+
+function getDate() {
+    return new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ███ MAIN LAYOUT ███ -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="flex min-h-screen">
+
+    <!-- ============ LEFT SIDEBAR ============ -->
+    <aside class="desktop-sidebar w-[280px] min-w-[280px] bg-ceo-surface border-r border-ceo-border flex flex-col h-screen sticky top-0 overflow-y-auto" id="leftSidebar">
+
+        <!-- Brand -->
+        <div class="px-5 py-5 border-b border-ceo-border">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-ceo-green to-emerald-700 flex items-center justify-center">
+                    <i data-lucide="layers" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-sm text-ceo-text tracking-tight">The Smart Layer</div>
+                    <div class="text-[10px] text-ceo-textMuted font-semibold uppercase tracking-widest">CEO Mission Control</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="px-3 py-4 space-y-1">
+            <a href="#" class="nav-active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-text transition-all">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 text-ceo-green"></i> Dashboard
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all">
+                <i data-lucide="users" class="w-4 h-4"></i> Clients
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all">
+                <i data-lucide="bot" class="w-4 h-4"></i> AI Agents
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all">
+                <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all">
+                <i data-lucide="settings" class="w-4 h-4"></i> Settings
+            </a>
+        </nav>
+
+        <!-- Divider -->
+        <div class="px-5 py-2"><div class="border-t border-ceo-border"></div></div>
+
+        <!-- KPI Cards -->
+        <div class="px-4 space-y-3 flex-1">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-ceo-textMuted px-1 mb-2">Business Health</p>
+
+            <!-- MRR -->
+            <div class="glass-card kpi-green p-4 animate-in" style="animation-delay: 0.1s">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] uppercase tracking-widest font-bold text-ceo-textMuted">Monthly Recurring Revenue</span>
+                    <i data-lucide="trending-up" class="w-4 h-4 text-ceo-green"></i>
+                </div>
+                <div class="text-2xl font-black text-ceo-green" id="kpiMRR">$0</div>
+                <div class="flex items-center gap-1 mt-1">
+                    <span class="text-xs font-bold text-ceo-green">↑ <span id="kpiMRRGrowth">0</span>%</span>
+                    <span class="text-[10px] text-ceo-textMuted">vs last month</span>
+                </div>
+            </div>
+
+            <!-- Total Clients -->
+            <div class="glass-card kpi-blue p-4 animate-in" style="animation-delay: 0.2s">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] uppercase tracking-widest font-bold text-ceo-textMuted">Active Clients</span>
+                    <i data-lucide="briefcase" class="w-4 h-4 text-ceo-blue"></i>
+                </div>
+                <div class="text-2xl font-black text-ceo-blue" id="kpiClients">0</div>
+                <div class="text-[10px] text-ceo-textMuted mt-1"><span id="kpiAutomations">0</span> automations running</div>
+            </div>
+
+            <!-- Pipeline -->
+            <div class="glass-card kpi-purple p-4 animate-in" style="animation-delay: 0.3s">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] uppercase tracking-widest font-bold text-ceo-textMuted">Pipeline Value</span>
+                    <i data-lucide="target" class="w-4 h-4 text-ceo-purple"></i>
+                </div>
+                <div class="text-2xl font-black text-ceo-purple" id="kpiPipeline">$0</div>
+                <div class="text-[10px] text-ceo-textMuted mt-1"><span id="kpiHours">0</span> hours reclaimed this month</div>
+            </div>
+        </div>
+
+        <!-- LifeOS Widget -->
+        <div class="px-4 py-4 mt-2">
+            <div class="glass-card p-4 animate-in" style="animation-delay: 0.4s">
+                <div class="flex items-center gap-2 mb-3">
+                    <i data-lucide="flame" class="w-4 h-4 text-orange-400"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest text-ceo-textMuted">LifeOS</span>
+                </div>
+
+                <!-- Motivational Clip Placeholder -->
+                <div class="w-full h-20 rounded-lg bg-gradient-to-br from-ceo-card to-ceo-surface border border-ceo-border flex items-center justify-center mb-3 group cursor-pointer hover:border-ceo-borderLight transition-all">
+                    <div class="text-center">
+                        <i data-lucide="play-circle" class="w-6 h-6 text-ceo-textMuted mx-auto mb-1 group-hover:text-ceo-green transition-colors"></i>
+                        <div class="text-[9px] text-ceo-textMuted font-semibold uppercase tracking-wider">Daily Motivational Clip</div>
+                    </div>
+                </div>
+
+                <!-- CEO Top 3 Tasks -->
+                <p class="text-[9px] font-bold uppercase tracking-widest text-ceo-textMuted mb-2">Today's CEO Priorities</p>
+                <div class="space-y-2" id="ceoTasksList"></div>
+            </div>
+        </div>
+
+        <!-- CEO Profile Footer -->
+        <div class="px-4 py-4 border-t border-ceo-border mt-auto">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-ceo-green to-ceo-blue flex items-center justify-center text-xs font-bold text-white">J</div>
+                <div>
+                    <div class="text-xs font-semibold text-ceo-text" id="ceoName"></div>
+                    <div class="text-[10px] text-ceo-textMuted" id="ceoTitle"></div>
+                </div>
+                <i data-lucide="log-out" class="w-4 h-4 text-ceo-textMuted ml-auto cursor-pointer hover:text-ceo-red transition-colors" onclick="handleLogout()" title="Sign Out"></i>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ============ CENTER + RIGHT AREA ============ -->
+    <div class="flex-1 flex flex-col min-h-screen">
+
+        <!-- Top Header Bar -->
+        <header class="h-16 border-b border-ceo-border bg-ceo-surface/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-50">
+            <div>
+                <h1 class="text-lg font-bold text-ceo-text" id="greetingText"></h1>
+                <p class="text-xs text-ceo-textMuted" id="dateText"></p>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- Deep Work Toggle -->
+                <div class="flex items-center gap-2">
+                    <i data-lucide="brain" class="w-4 h-4 text-ceo-purple"></i>
+                    <span class="text-xs font-semibold text-ceo-textMuted">Deep Work</span>
+                    <div class="toggle-track" id="deepWorkToggle" onclick="toggleDeepWork()">
+                        <div class="toggle-thumb"></div>
+                    </div>
+                </div>
+                <div class="w-px h-6 bg-ceo-border"></div>
+                <!-- Notification Bell -->
+                <button class="relative p-2 rounded-lg hover:bg-ceo-card transition-colors" id="notifBtn">
+                    <i data-lucide="bell" class="w-5 h-5 text-ceo-textMuted"></i>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-ceo-red rounded-full"></span>
+                </button>
+                <!-- Quick Search -->
+                <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-ceo-card border border-ceo-border text-xs text-ceo-textMuted hover:border-ceo-borderLight transition-colors" id="searchBtn">
+                    <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                    <span>Search...</span>
+                    <kbd class="ml-2 px-1.5 py-0.5 rounded bg-ceo-surface border border-ceo-border text-[10px] font-mono">⌘K</kbd>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="flex-1 grid grid-cols-[1fr_340px] gap-0 main-grid" style="grid-template-columns: 1fr 340px;">
+
+            <!-- ============ CENTER: CALENDAR ============ -->
+            <main class="p-6 overflow-y-auto">
+                <div class="glass-card p-5 animate-in relative" style="animation-delay: 0.15s" id="calendarContainer">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-ceo-green/10 flex items-center justify-center">
+                                <i data-lucide="calendar-days" class="w-4 h-4 text-ceo-green"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-sm font-bold text-ceo-text">Master Dayplanner</h2>
+                                <p class="text-[10px] text-ceo-textMuted">No overlapping bookings enforced</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-ceo-green/10 text-[10px] font-bold text-ceo-green">
+                                <span class="w-1.5 h-1.5 rounded-full bg-ceo-green"></span> LIVE
+                            </span>
+                        </div>
+                    </div>
+                    <div id="fullCalendar"></div>
+
+                    <!-- Deep Work Overlay -->
+                    <div class="deep-work-overlay" id="deepWorkOverlay">
+                        <div class="text-center">
+                            <div class="w-16 h-16 rounded-2xl bg-ceo-purple/20 border border-ceo-purple/30 flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="brain" class="w-8 h-8 text-ceo-purple"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-ceo-text mb-1">Deep Work Mode Active</h3>
+                            <p class="text-xs text-ceo-textMuted max-w-xs">Calendar is locked for focused AI development. 4-hour blocks have been reserved.</p>
+                            <button onclick="toggleDeepWork()" class="mt-4 px-4 py-2 rounded-lg bg-ceo-purple/20 border border-ceo-purple/30 text-ceo-purple text-xs font-bold hover:bg-ceo-purple/30 transition-all">
+                                Exit Deep Work
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats Row below Calendar -->
+                <div class="grid grid-cols-3 gap-4 mt-4">
+                    <div class="glass-card p-4 text-center animate-in" style="animation-delay: 0.25s">
+                        <div class="text-2xl font-black text-ceo-green" id="statLeads">0</div>
+                        <div class="text-[10px] text-ceo-textMuted uppercase font-bold tracking-widest mt-1">Total Leads This Week</div>
+                    </div>
+                    <div class="glass-card p-4 text-center animate-in" style="animation-delay: 0.3s">
+                        <div class="text-2xl font-black text-ceo-blue" id="statHours">0</div>
+                        <div class="text-[10px] text-ceo-textMuted uppercase font-bold tracking-widest mt-1">Hours Reclaimed</div>
+                    </div>
+                    <div class="glass-card p-4 text-center animate-in" style="animation-delay: 0.35s">
+                        <div class="text-2xl font-black text-ceo-purple" id="statAutomations">0</div>
+                        <div class="text-[10px] text-ceo-textMuted uppercase font-bold tracking-widest mt-1">Active Automations</div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- ============ RIGHT PANEL ============ -->
+            <aside class="right-panel border-l border-ceo-border bg-ceo-surface/50 flex flex-col h-[calc(100vh-64px)] sticky top-16 overflow-hidden">
+
+                <!-- Client Portfolio Header -->
+                <div class="px-5 py-4 border-b border-ceo-border">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="folder-kanban" class="w-4 h-4 text-ceo-green"></i>
+                            <h2 class="text-sm font-bold text-ceo-text">Client Portfolio</h2>
+                        </div>
+                        <span class="text-[10px] font-bold text-ceo-textMuted bg-ceo-card px-2 py-1 rounded-md" id="clientCount"></span>
+                    </div>
+                </div>
+
+                <!-- Client List (scrollable) -->
+                <div class="flex-1 overflow-y-auto px-4 py-3 space-y-2" id="clientList"></div>
+
+                <!-- AI Command Bar -->
+                <div class="border-t border-ceo-border p-4 bg-ceo-surface/80 backdrop-blur-md">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-ceo-green"></i>
+                        <span class="text-xs font-bold text-ceo-text">CEO AI Command Bar</span>
+                    </div>
+
+                    <!-- Model Selector -->
+                    <div class="flex items-center gap-2 mb-3">
+                        <select id="aiModelSelect" class="flex-1 bg-ceo-card border border-ceo-border rounded-lg px-3 py-2 text-xs text-ceo-text font-medium focus:outline-none focus:border-ceo-green transition-colors cursor-pointer">
+                        </select>
+                    </div>
+
+                    <!-- Terminal Output -->
+                    <div class="ai-terminal p-3 mb-3 hidden" id="aiTerminal">
+                        <div id="aiTerminalContent"></div>
+                    </div>
+
+                    <!-- Input -->
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 relative">
+                            <input
+                                type="text"
+                                id="aiInput"
+                                placeholder="Ask your AI anything..."
+                                class="w-full bg-ceo-card border border-ceo-border rounded-lg px-4 py-2.5 text-xs text-ceo-text placeholder-ceo-textMuted focus:outline-none focus:border-ceo-green transition-colors font-medium"
+                                onkeydown="if(event.key==='Enter') executeAICommand()"
+                            >
+                        </div>
+                        <button onclick="executeAICommand()" class="p-2.5 rounded-lg bg-ceo-green/10 border border-ceo-green/20 text-ceo-green hover:bg-ceo-green/20 transition-all" id="aiSendBtn">
+                            <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+
+<!-- ============ MOBILE BOTTOM BAR ============ -->
+<div class="mobile-bottom-bar justify-around items-center" id="mobileBar">
+    <button class="flex flex-col items-center gap-1 px-4 py-1 text-ceo-green" data-mobile-nav="dashboard">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 px-4 py-1 text-ceo-textMuted" data-mobile-nav="calendar">
+        <i data-lucide="calendar-days" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold uppercase tracking-wider">Schedule</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 px-4 py-1 text-ceo-textMuted" data-mobile-nav="clients">
+        <i data-lucide="users" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold uppercase tracking-wider">Clients</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 px-4 py-1 text-ceo-textMuted" data-mobile-nav="ai">
+        <i data-lucide="sparkles" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold uppercase tracking-wider">AI</span>
+    </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ███ APPLICATION LOGIC ███ -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<script>
+    let calendarInstance = null;
+    let deepWorkEvents = [];
+
+    // ── Initialize ────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+        renderKPIs();
+        renderClientList();
+        renderCEOTasks();
+        renderAIModelSelector();
+        initCalendar();
+        setGreeting();
+        animateCountUps();
+    });
+
+    // ── Set Greeting ──────────────────────────────────────────
+    function setGreeting() {
+        document.getElementById('greetingText').textContent = `${getGreeting()}, ${masterState.ceo.name}`;
+        document.getElementById('dateText').textContent = getDate();
+        document.getElementById('ceoName').textContent = masterState.ceo.name;
+        document.getElementById('ceoTitle').textContent = `${masterState.ceo.title} • ${masterState.ceo.company}`;
+    }
+
+    // ── Count-up Animation ────────────────────────────────────
+    function animateCountUps() {
+        const targets = [
+            { el: 'kpiMRR',          val: masterState.kpis.mrr,              prefix: '$', suffix: '', decimals: 0, format: true },
+            { el: 'kpiMRRGrowth',    val: masterState.kpis.mrrGrowth,        prefix: '',  suffix: '', decimals: 1, format: false },
+            { el: 'kpiClients',      val: masterState.kpis.totalClients,     prefix: '',  suffix: '', decimals: 0, format: false },
+            { el: 'kpiAutomations',  val: masterState.kpis.activeAutomations,prefix: '',  suffix: '', decimals: 0, format: false },
+            { el: 'kpiPipeline',     val: masterState.kpis.pipeline,         prefix: '$', suffix: '', decimals: 0, format: true },
+            { el: 'kpiHours',        val: masterState.kpis.hoursReclaimed,   prefix: '',  suffix: '', decimals: 0, format: false },
+            { el: 'statLeads',       val: masterState.clients.reduce((a,c)=>a+c.leads,0), prefix:'', suffix:'', decimals:0, format:false },
+            { el: 'statHours',       val: masterState.clients.reduce((a,c)=>a+c.hoursSaved,0), prefix:'', suffix:'', decimals:0, format:false },
+            { el: 'statAutomations', val: masterState.kpis.activeAutomations, prefix:'', suffix:'', decimals:0, format:false },
+        ];
+
+        targets.forEach(t => {
+            const el = document.getElementById(t.el);
+            if (!el) return;
+            let start = 0;
+            const duration = 1200;
+            const step = 16;
+            const steps = duration / step;
+            const increment = t.val / steps;
+            let current = 0;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= t.val) {
+                    current = t.val;
+                    clearInterval(timer);
+                }
+                let display = t.decimals > 0 ? current.toFixed(t.decimals) : Math.floor(current);
+                if (t.format) display = Number(display).toLocaleString('en-US');
+                el.textContent = t.prefix + display + t.suffix;
+            }, step);
+        });
+    }
+
+    // ── Render KPIs ───────────────────────────────────────────
+    function renderKPIs() {
+        // KPIs are rendered by count-up animation
+    }
+
+    // ── Render Client List ────────────────────────────────────
+    function renderClientList() {
+        const container = document.getElementById('clientList');
+        const countEl = document.getElementById('clientCount');
+        countEl.textContent = `${masterState.clients.length} clients`;
+
+        container.innerHTML = masterState.clients.map((client, i) => `
+            <div class="glass-card p-3 animate-in cursor-pointer group" style="animation-delay: ${0.1 + i * 0.05}s">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-2.5 h-2.5 rounded-full ${getStatusPulseClass(client.status)}" style="background: ${getStatusColor(client.status)}"></div>
+                        <span class="text-xs font-semibold text-ceo-text group-hover:text-ceo-green transition-colors">${client.name}</span>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md"
+                          style="background: ${getStatusColor(client.status)}15; color: ${getStatusColor(client.status)}">
+                        ${getStatusLabel(client.status)}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-ceo-textMuted">
+                    <div class="flex items-center gap-3">
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="trending-up" class="w-3 h-3"></i> ${client.leads} leads
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3 h-3"></i> ${client.hoursSaved}h saved
+                        </span>
+                    </div>
+                    <span class="font-bold text-ceo-green">${formatCurrency(client.mrr)}/mo</span>
+                </div>
+            </div>
+        `).join('');
+
+        // Re-init icons for dynamic content
+        lucide.createIcons();
+    }
+
+    // ── Render CEO Tasks ──────────────────────────────────────
+    function renderCEOTasks() {
+        const container = document.getElementById('ceoTasksList');
+        container.innerHTML = masterState.ceoTasks.map(task => `
+            <label class="flex items-start gap-2.5 cursor-pointer group">
+                <input type="checkbox" class="ceo-checkbox mt-0.5" ${task.done ? 'checked' : ''} onchange="toggleTask(${task.id})">
+                <span class="text-[11px] text-ceo-textMuted leading-snug group-hover:text-ceo-text transition-colors ${task.done ? 'line-through opacity-50' : ''}">${task.text}</span>
+            </label>
+        `).join('');
+    }
+
+    function toggleTask(id) {
+        const task = masterState.ceoTasks.find(t => t.id === id);
+        if (task) {
+            task.done = !task.done;
+            renderCEOTasks();
+        }
+    }
+
+    // ── AI Model Selector ─────────────────────────────────────
+    function renderAIModelSelector() {
+        const select = document.getElementById('aiModelSelect');
+        select.innerHTML = masterState.aiModels.map(m =>
+            `<option value="${m.id}">${m.name} — ${m.badge}</option>`
+        ).join('');
+    }
+
+    // ── AI Command Bar ────────────────────────────────────────
+    function executeAICommand() {
+        const input = document.getElementById('aiInput');
+        const terminal = document.getElementById('aiTerminal');
+        const content = document.getElementById('aiTerminalContent');
+        const sendBtn = document.getElementById('aiSendBtn');
+        const command = input.value.trim();
+
+        if (!command) return;
+
+        const modelName = document.getElementById('aiModelSelect').selectedOptions[0].text;
+
+        // Show terminal
+        terminal.classList.remove('hidden');
+
+        // Processing state
+        content.innerHTML = `
+            <div class="text-ceo-textMuted mb-1">
+                <span class="text-ceo-green">ceo@smartlayer</span>:<span class="text-ceo-blue">~</span>$ ${escapeHtml(command)}
+            </div>
+            <div class="flex items-center gap-2 text-ceo-textMuted">
+                <span class="inline-block w-3 h-3 border-2 border-ceo-green border-t-transparent rounded-full animate-spin"></span>
+                Routing to ${escapeHtml(modelName)}...
+            </div>
+        `;
+
+        input.value = '';
+        input.disabled = true;
+        sendBtn.disabled = true;
+
+        // Simulate response after delay
+        setTimeout(() => {
+            const responses = getMockResponse(command);
+            content.innerHTML = `
+                <div class="text-ceo-textMuted mb-1">
+                    <span class="text-ceo-green">ceo@smartlayer</span>:<span class="text-ceo-blue">~</span>$ ${escapeHtml(command)}
+                </div>
+                <div class="text-ceo-textMuted text-[10px] mb-2">▸ Processed by ${escapeHtml(modelName)}</div>
+                <div class="text-ceo-green">${responses}</div>
+                <div class="mt-2 text-ceo-textMuted">
+                    <span class="text-ceo-green">ceo@smartlayer</span>:<span class="text-ceo-blue">~</span>$ <span class="cursor-blink"></span>
+                </div>
+            `;
+            input.disabled = false;
+            sendBtn.disabled = false;
+            input.focus();
+        }, 1800);
+    }
+
+    function getMockResponse(command) {
+        const lc = command.toLowerCase();
+        if (lc.includes('revenue') || lc.includes('mrr'))
+            return `MRR: ${formatCurrency(masterState.kpis.mrr)} (↑${masterState.kpis.mrrGrowth}%)\nPipeline: ${formatCurrency(masterState.kpis.pipeline)}\nProjected Q1 close rate: 68%`;
+        if (lc.includes('client') || lc.includes('portfolio'))
+            return `${masterState.clients.length} active clients.\n🟢 ${masterState.clients.filter(c=>c.status==='green').length} healthy\n🟡 ${masterState.clients.filter(c=>c.status==='yellow').length} need attention\n🔴 ${masterState.clients.filter(c=>c.status==='red').length} critical`;
+        if (lc.includes('schedule') || lc.includes('calendar'))
+            return `${masterState.calendarEvents.length} events scheduled this week.\nNext: "${masterState.calendarEvents[0].title}" at ${new Date(masterState.calendarEvents[0].start).toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'})}`;
+        return `Analysis complete. ${masterState.kpis.activeAutomations} automations are running across ${masterState.clients.length} clients.\nAll systems nominal. No critical alerts detected.`;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ── FullCalendar ──────────────────────────────────────────
+    function initCalendar() {
+        const calendarEl = document.getElementById('fullCalendar');
+        calendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            initialDate: '2026-02-16',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'timeGridWeek,timeGridDay'
+            },
+            slotMinTime: '07:00:00',
+            slotMaxTime: '21:00:00',
+            allDaySlot: false,
+            nowIndicator: true,
+            height: 'auto',
+            expandRows: true,
+            eventOverlap: false,
+            slotEventOverlap: false,
+            editable: true,
+            selectable: true,
+            selectMirror: true,
+            dayMaxEvents: true,
+            events: masterState.calendarEvents,
+            eventDidMount: function(info) {
+                info.el.style.borderRadius = '6px';
+                info.el.style.fontSize = '0.7rem';
+                info.el.style.fontWeight = '600';
+            },
+            select: function(info) {
+                // Check for overlaps
+                const events = calendarInstance.getEvents();
+                const hasOverlap = events.some(ev => {
+                    return (info.start < ev.end && info.end > ev.start);
+                });
+                if (hasOverlap) {
+                    calendarInstance.unselect();
+                    return;
+                }
+                const title = prompt('New Event:');
+                if (title) {
+                    calendarInstance.addEvent({
+                        title: title,
+                        start: info.start,
+                        end: info.end,
+                        color: '#22c55e'
+                    });
+                }
+                calendarInstance.unselect();
+            },
+        });
+        calendarInstance.render();
+    }
+
+    // ── Deep Work Mode ────────────────────────────────────────
+    function toggleDeepWork() {
+        masterState.deepWorkActive = !masterState.deepWorkActive;
+        const toggle = document.getElementById('deepWorkToggle');
+        const overlay = document.getElementById('deepWorkOverlay');
+
+        if (masterState.deepWorkActive) {
+            toggle.classList.add('active');
+            overlay.classList.add('active');
+
+            // Add 4-hour deep work blocks for the visible week
+            const today = new Date('2026-02-16');
+            for (let d = 0; d < 5; d++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() + d);
+                const dayOfWeek = date.getDay();
+                if (dayOfWeek === 0 || dayOfWeek === 6) continue; // skip weekends
+
+                const startStr = date.toISOString().split('T')[0] + 'T08:00:00';
+                const endStr = date.toISOString().split('T')[0] + 'T12:00:00';
+
+                const ev = calendarInstance.addEvent({
+                    title: '🧠 Deep Work — AI Dev',
+                    start: startStr,
+                    end: endStr,
+                    color: '#7c3aed',
+                    classNames: ['deep-work-event'],
+                    editable: false,
+                    extendedProps: { isDeepWork: true }
+                });
+                deepWorkEvents.push(ev);
+            }
+        } else {
+            toggle.classList.remove('active');
+            overlay.classList.remove('active');
+
+            // Remove deep work events
+            deepWorkEvents.forEach(ev => ev.remove());
+            deepWorkEvents = [];
+        }
+    }
+</script>
+
+    <!-- Firebase Auth Protection -->
+    <script type="module">
+        import { protectCEORoute, logOut, getCurrentUser } from './auth.js';
+        
+        // Protect this route - redirect if not CEO
+        protectCEORoute();
+        
+        // Hide loading overlay once auth is confirmed
+        getCurrentUser().then(user => {
+            if (user) {
+                document.getElementById('auth-loading').style.display = 'none';
+            }
+        });
+        
+        // Add logout functionality
+        window.handleLogout = logOut;
+    </script>
+
+</body>
+</html>
