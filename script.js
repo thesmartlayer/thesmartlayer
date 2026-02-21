@@ -305,3 +305,68 @@ if (heroImage) {
 }
 
 console.log('🚀 The Smart Layer - Scripts loaded successfully!');
+
+// ==========================================
+// FULLSCREEN DEMO OVERLAY
+// ==========================================
+const maximizeBtn = document.getElementById('maximize-btn');
+const fullscreenOverlay = document.getElementById('fullscreen-overlay');
+const fullscreenClose = document.getElementById('fullscreen-close');
+const fullscreenIframe = document.getElementById('fullscreen-iframe');
+const fullscreenUrlText = document.getElementById('fullscreen-url-text');
+
+if (maximizeBtn) {
+    maximizeBtn.addEventListener('click', () => {
+        const currentSrc = document.getElementById('demo-iframe').src;
+        const currentUrl = document.getElementById('demo-url').textContent;
+
+        fullscreenIframe.src = currentSrc;
+        fullscreenUrlText.textContent = currentUrl;
+        fullscreenOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+}
+
+if (fullscreenClose) {
+    fullscreenClose.addEventListener('click', () => {
+        fullscreenOverlay.classList.remove('active');
+        fullscreenIframe.src = '';
+        document.body.style.overflow = '';
+    });
+}
+
+// Close on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && fullscreenOverlay && fullscreenOverlay.classList.contains('active')) {
+        fullscreenClose.click();
+    }
+});
+
+// ==========================================
+// EMAIL SUBSCRIBE FORM
+// ==========================================
+const subscribeForm = document.querySelector('.subscribe-form');
+
+if (subscribeForm) {
+    subscribeForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(subscribeForm);
+
+        fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(formData).toString()
+        })
+        .then(response => {
+            if (response.ok) {
+                subscribeForm.innerHTML = '<p class="success-message">✓ You\'re subscribed! Watch your inbox.</p>';
+            } else {
+                alert('Something went wrong. Please try again.');
+            }
+        })
+        .catch(() => {
+            alert('Connection error. Please try again.');
+        });
+    });
+}

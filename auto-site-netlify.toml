@@ -1,0 +1,15 @@
+# ============================================
+# netlify.toml for auto.thesmartlayer.com
+# ============================================
+# Add this to your auto site's repo to allow
+# iframe embedding on thesmartlayer.com
+# ============================================
+
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "ALLOW-FROM https://thesmartlayer.com"
+    Content-Security-Policy = "frame-ancestors 'self' https://thesmartlayer.com https://www.thesmartlayer.com"
