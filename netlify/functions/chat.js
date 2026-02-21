@@ -27,7 +27,7 @@ YOUR BEHAVIOR:
 - Ask about their business type to give relevant examples
 - Gently guide toward booking a free consultation
 - If asked something you don't know, offer to connect them with the team
-- Contact: contact@thesmartlayer.com or (506) 555-SMART
+- Contact: info@thesmartlayer.com or (855) 404-AIAI (2424)
 - Business hours: Mon-Fri 9-6, Sat 10-2, Sun closed`;
 
 exports.handler = async (event) => {
@@ -48,12 +48,12 @@ exports.handler = async (event) => {
         return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
     }
 
-    const apiKey = CLAUDE_API_KEY;
+    const apiKey = process.env.CLAUDE_API_KEY;
     if (!apiKey) {
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ reply: "I'm having a connection issue right now. Please email us at contact@thesmartlayer.com and we'll get right back to you!" })
+            body: JSON.stringify({ reply: "I'm having a connection issue right now. Please email us at info@thesmartlayer.com and we'll get right back to you!" })
         };
     }
 
@@ -89,7 +89,7 @@ exports.handler = async (event) => {
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ reply: "I'm having a momentary hiccup. Could you try again? Or feel free to email us at contact@thesmartlayer.com!" })
+                body: JSON.stringify({ reply: "I'm having a momentary hiccup. Could you try again? Or feel free to email us at info@thesmartlayer.com!" })
             };
         }
 
@@ -107,7 +107,7 @@ exports.handler = async (event) => {
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ reply: "Something went wrong on my end. Please try again or reach out to us at contact@thesmartlayer.com!" })
+            body: JSON.stringify({ reply: "Something went wrong on my end. Please try again or reach out to us at info@thesmartlayer.com!" })
         };
     }
 };
