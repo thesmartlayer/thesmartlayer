@@ -6,8 +6,8 @@
         businessName: "The Smart Layer",
         primaryColor: "#3b82f6",
         accentColor: "#f59e0b",
-        email: "contact@thesmartlayer.com",
-        phoneNumber: "(506) 555-SMART"
+        email: "info@thesmartlayer.com",
+        phoneNumber: "(855) 404-AIAI (2424)"
     };
 
     function createChatbot() {

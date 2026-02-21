@@ -2209,3 +2209,135 @@ body {
         font-size: 1.75rem;
     }
 }
+
+/* ==========================================
+   TRIPLE CONTACT MODAL
+   ========================================== */
+.contact-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.contact-modal-overlay.active {
+    display: flex;
+}
+
+.contact-modal {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 2.5rem;
+    max-width: 440px;
+    width: 100%;
+    position: relative;
+    animation: modalSlideUp 0.3s ease;
+}
+
+@keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.contact-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--gray-400);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: var(--transition-smooth);
+}
+
+.contact-modal-close:hover {
+    color: var(--navy-deep);
+    background: var(--gray-100);
+}
+
+.contact-modal-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--navy-deep);
+    margin-bottom: 0.5rem;
+}
+
+.contact-modal-subtitle {
+    color: var(--gray-600);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+.contact-modal-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.contact-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    border: 2px solid rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    background: var(--white);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    text-decoration: none;
+    color: inherit;
+    font-family: var(--font-primary);
+    font-size: 1rem;
+}
+
+.contact-option:hover {
+    border-color: var(--blue-primary);
+    background: rgba(59, 130, 246, 0.04);
+    transform: translateX(4px);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
+}
+
+.contact-option-icon {
+    font-size: 1.75rem;
+    flex-shrink: 0;
+}
+
+.contact-option-text {
+    flex: 1;
+    text-align: left;
+}
+
+.contact-option-text strong {
+    display: block;
+    font-weight: 700;
+    color: var(--navy-deep);
+    font-size: 1rem;
+    margin-bottom: 0.15rem;
+}
+
+.contact-option-text span {
+    color: var(--gray-600);
+    font-size: 0.85rem;
+}
+
+.contact-option svg {
+    color: var(--gray-300);
+    flex-shrink: 0;
+    transition: var(--transition-smooth);
+}
+
+.contact-option:hover svg {
+    color: var(--blue-primary);
+    transform: translateX(4px);
+}

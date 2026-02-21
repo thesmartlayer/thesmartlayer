@@ -250,11 +250,11 @@ if (contactForm) {
             if (response.ok) {
                 contactForm.innerHTML = '<div style="text-align: center; padding: 3rem 0;"><h3 style="color: var(--blue-primary); margin-bottom: 1rem;">Thank You!</h3><p style="color: var(--gray-300);">We\'ll be in touch within 24 hours.</p></div>';
             } else {
-                alert('Something went wrong. Please email us directly at contact@thesmartlayer.com');
+                alert('Something went wrong. Please email us directly at info@thesmartlayer.com');
             }
         })
         .catch(() => {
-            alert('Connection error. Please email us directly at contact@thesmartlayer.com');
+            alert('Connection error. Please email us directly at info@thesmartlayer.com');
         });
     });
 }
@@ -343,8 +343,43 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ==========================================
-// EMAIL SUBSCRIBE FORM
+// TRIPLE-CONTACT MODAL
 // ==========================================
+const contactModal = document.getElementById('contact-modal');
+const contactModalClose = document.getElementById('contact-modal-close');
+const contactChat = document.getElementById('contact-chat');
+
+// Open modal from any .contact-trigger button
+document.querySelectorAll('.contact-trigger').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (contactModal) contactModal.classList.add('active');
+    });
+});
+
+// Close modal
+if (contactModalClose) {
+    contactModalClose.addEventListener('click', () => {
+        contactModal.classList.remove('active');
+    });
+}
+
+// Close on backdrop click
+if (contactModal) {
+    contactModal.addEventListener('click', (e) => {
+        if (e.target === contactModal) contactModal.classList.remove('active');
+    });
+}
+
+// "Chat with AI" opens the chatbot
+if (contactChat) {
+    contactChat.addEventListener('click', () => {
+        contactModal.classList.remove('active');
+        // Trigger the chatbot open
+        const chatBtn = document.querySelector('.sl-chat-btn');
+        if (chatBtn) chatBtn.click();
+    });
+}
 const subscribeForm = document.querySelector('.subscribe-form');
 
 if (subscribeForm) {
