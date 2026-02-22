@@ -136,7 +136,7 @@ const industryUrls = {
         name: 'Dental Office'
     },
     hvac: {
-        url: '/coming-soon.html',
+        url: 'https://hvac.thesmartlayer.com',
         name: 'HVAC Services'
     },
     home: {
@@ -380,7 +380,7 @@ if (contactChat) {
     contactChat.addEventListener('click', () => {
         contactModal.classList.remove('active');
         // Trigger the chatbot open
-        const chatBtn = document.querySelector('.sl-chat-btn');
+        const chatBtn = document.querySelector('#smartlayer-chat-btn');
         if (chatBtn) chatBtn.click();
     });
 }
@@ -447,12 +447,12 @@ function loadDashboardInIframe(url, urlText) {
 
 if (demoOwnerBtn) {
     demoOwnerBtn.addEventListener('click', () => {
-        loadDashboardInIframe('https://auto.thesmartlayer.com/dashboard.html', 'auto.thesmartlayer.com/dashboard');
+        loadDashboardInIframe('https://auto.thesmartlayer.com/autodashboard.html', 'auto.thesmartlayer.com/dashboard');
     });
 }
 
 if (demoCustomerBtn) {
     demoCustomerBtn.addEventListener('click', () => {
-        loadDashboardInIframe('https://auto.thesmartlayer.com/dashboard.html', 'auto.thesmartlayer.com/dashboard');
+        loadDashboardInIframe('https://auto.thesmartlayer.com/autodashboard.html', 'auto.thesmartlayer.com/dashboard');
     });
 }
