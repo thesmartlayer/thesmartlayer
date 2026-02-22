@@ -4,3 +4,10 @@
 
 [functions]
   node_bundler = "esbuild"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "ALLOWALL"
+    Content-Security-Policy = "frame-ancestors https://thesmartlayer.com https://thesmartlayer.netlify.app https://www.thesmartlayer.com http://localhost:*"
+    Access-Control-Allow-Origin = "*"
