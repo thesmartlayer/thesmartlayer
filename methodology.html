@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Methodology | The Smart Layer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --accent: #ff3e3e; /* Red accent for the Smart Layer brand */
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 4rem 2rem; }
+
+        /* Navigation */
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 3rem;
+            transition: color 0.2s;
+        }
+        .nav-back:hover { color: var(--accent); }
+
+        /* Typography */
+        h1 { font-size: 3rem; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 1rem; color: #fff; }
+        h2 { font-size: 1.5rem; font-weight: 600; margin-top: 3rem; color: var(--accent); }
+        p { color: var(--text-dim); margin-bottom: 1.5rem; }
+
+        /* The 3-Stage Process */
+        .method-step {
+            padding: 2rem;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .step-number {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Schema Preview Widget */
+        .schema-widget {
+            background: #000;
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+        .code-keyword { color: #c678dd; }
+        .code-string { color: #98c379; }
+        .code-key { color: #e06c75; }
+
+        /* FAQ Section */
+        .faq-item { border-bottom: 1px solid var(--border); padding: 1.5rem 0; }
+        .faq-q { font-weight: 600; color: #fff; margin-bottom: 0.5rem; display: block; }
+        .faq-a { font-size: 0.95rem; color: var(--text-dim); }
+
+        .cta {
+            text-align: center;
+            margin-top: 5rem;
+            padding: 3rem;
+            background: linear-gradient(to bottom, var(--glass), transparent);
+            border-radius: 24px;
+        }
+        .btn {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            padding: 12px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="index.html" class="nav-back">← Back to Dashboard</a>
+
+        <header>
+            <h1>Systems Architecture <br>& Machine Trust</h1>
+            <p>Moving beyond traditional digital marketing. We engineer the infrastructure that makes AI systems trust and recommend your business.</p>
+        </header>
+
+        <section id="process">
+            <div class="method-step">
+                <span class="step-number">PHASE_01</span>
+                <h2>The Digital Backbone</h2>
+                <p>We unify disparate business operations into a single, high-performance command center. This infrastructure ensures your data remains consistent and ready for machine ingestion, forming the structural foundation for AI integration.</p>
+            </div>
+
+            <div class="method-step">
+                <span class="step-number">PHASE_02</span>
+                <h2>Machine Trust Engineering</h2>
+                <p>We validate your business as a high-confidence entity. By deploying advanced Local Business Schema and JSON-LD data layers, we provide AI assistants like Siri and Gemini with a clear, unambiguous blueprint of your authority.</p>
+            </div>
+
+            <div class="schema-widget">
+                <div style="color: #61afef; margin-bottom: 10px;">// LIVE ENTITY PREVIEW</div>
+                <span class="code-keyword">{</span><br>
+                &nbsp;&nbsp;<span class="code-key">"@context"</span>: <span class="code-string">"https://schema.org"</span>,<br>
+                &nbsp;&nbsp;<span class="code-key">"@type"</span>: <span class="code-string">"Service"</span>,<br>
+                &nbsp;&nbsp;<span class="code-key">"name"</span>: <span class="code-string">"AI Business Integration"</span>,<br>
+                &nbsp;&nbsp;<span class="code-key">"provider"</span>: {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"@type"</span>: <span class="code-string">"LocalBusiness"</span>,<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"name"</span>: <span class="code-string">"The Smart Layer"</span><br>
+                &nbsp;&nbsp;},<br>
+                &nbsp;&nbsp;<span class="code-key">"areaServed"</span>: <span class="code-string">"Fredericton, NB"</span><br>
+                <span class="code-keyword">}</span>
+            </div>
+
+            <div class="method-step">
+                <span class="step-number">PHASE_03</span>
+                <h2>Answer Engine Synthesis</h2>
+                <p>We re-engineer your digital assets to lead with "Answer-First" content blocks. This ensures your brand isn't just found in a list, but is actively quoted as the definitive solution by LLMs.</p>
+            </div>
+        </section>
+
+        <section id="faq">
+            <h2>Frequently Asked Questions</h2>
+            
+            <div class="faq-item">
+                <span class="faq-q">What is a Machine Trust Score?</span>
+                <span class="faq-a">It is our internal metric for how easily an AI model can verify your business data. High scores lead to consistent AI recommendations.</span>
+            </div>
+
+            <div class="faq-item">
+                <span class="faq-q">Is this the same as SEO?</span>
+                <span class="faq-a">No. SEO targets human search patterns on Google. AEO targets the internal data structures that AI models use to generate answers.</span>
+            </div>
+
+            <div class="faq-item">
+                <span class="faq-q">How long does integration take?</span>
+                <span class="faq-a">Most Digital Backbone deployments are fully operational within 14 business days.</span>
+            </div>
+        </section>
+
+        <div class="cta">
+            <p>Ready to upgrade your infrastructure?</p>
+            <a href="mailto:hello@thesmartlayer.com" class="btn">Initialize Contact</a>
+        </div>
+    </div>
+
+</body>
+</html>
