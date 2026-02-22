@@ -324,6 +324,8 @@ if (maximizeBtn) {
         fullscreenUrlText.textContent = currentUrl;
         fullscreenOverlay.classList.add('active');
         document.body.style.overflow = 'hidden';
+        // Hide chatbot during fullscreen
+        if (window._smartLayerChatbot) window._smartLayerChatbot.hide();
     });
 }
 
@@ -332,6 +334,8 @@ if (fullscreenClose) {
         fullscreenOverlay.classList.remove('active');
         fullscreenIframe.src = '';
         document.body.style.overflow = '';
+        // Show chatbot again
+        if (window._smartLayerChatbot) window._smartLayerChatbot.show();
     });
 }
 
@@ -403,5 +407,52 @@ if (subscribeForm) {
         .catch(() => {
             alert('Connection error. Please try again.');
         });
+    });
+}
+
+// ==========================================
+// DASHBOARD PREVIEW BUTTONS
+// ==========================================
+const demoOwnerBtn = document.getElementById('demo-owner-btn');
+const demoCustomerBtn = document.getElementById('demo-customer-btn');
+
+function loadDashboardInIframe(url, urlText) {
+    const iframe = document.getElementById('demo-iframe');
+    const urlDisplay = document.getElementById('demo-url');
+    const loadOverlay = document.getElementById('loading-overlay');
+    const loadIndustry = document.getElementById('loading-industry');
+
+    if (loadOverlay) {
+        loadOverlay.classList.add('active');
+        if (loadIndustry) loadIndustry.textContent = 'Dashboard';
+    }
+
+    if (urlDisplay) urlDisplay.textContent = urlText;
+    if (iframe) {
+        iframe.src = url;
+        iframe.addEventListener('load', () => {
+            setTimeout(() => {
+                if (loadOverlay) loadOverlay.classList.remove('active');
+            }, 500);
+        }, { once: true });
+    }
+
+    // Deselect industry cards
+    document.querySelectorAll('.industry-card[data-industry]').forEach(c => c.classList.remove('active'));
+
+    // Scroll to demo preview
+    const demoSection = document.getElementById('demo');
+    if (demoSection) demoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+if (demoOwnerBtn) {
+    demoOwnerBtn.addEventListener('click', () => {
+        loadDashboardInIframe('https://auto.thesmartlayer.com/dashboard.html', 'auto.thesmartlayer.com/dashboard');
+    });
+}
+
+if (demoCustomerBtn) {
+    demoCustomerBtn.addEventListener('click', () => {
+        loadDashboardInIframe('https://auto.thesmartlayer.com/dashboard.html', 'auto.thesmartlayer.com/dashboard');
     });
 }

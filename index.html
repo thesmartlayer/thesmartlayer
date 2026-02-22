@@ -27,7 +27,7 @@
           "@context": "https://schema.org",
           "@type": "LocalBusiness",
           "name": "The Smart Layer",
-          "image": "https://thesmartlayer.com/heroillustration.png",
+          "image": "https://thesmartlayer.com/hero-illustration.png",
           "@id": "https://thesmartlayer.com",
           "url": "https://thesmartlayer.com",
           "telephone": "1-855-404-2424",
@@ -164,7 +164,7 @@
                                 <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
                         </div>
-                        <img src="heroillustration.png" alt="AI Chatbot Illustration" class="hero-image"
+                        <img src="hero-illustration.png" alt="AI Chatbot Illustration" class="hero-image"
                             id="heroImage">
                     </div>
                 </div>
@@ -266,6 +266,15 @@
                         </svg>
                         This could be <strong>YOUR</strong> website
                     </p>
+                    <!-- Dashboard Preview Buttons -->
+                    <div class="dashboard-preview-btns" style="display:flex;gap:0.75rem;justify-content:center;margin-top:1rem;flex-wrap:wrap;">
+                        <button class="btn btn-primary" id="demo-owner-btn" style="font-size:0.9rem;padding:0.6rem 1.25rem;">
+                            🔧 Try Owner Dashboard
+                        </button>
+                        <button class="btn btn-secondary" id="demo-customer-btn" style="font-size:0.9rem;padding:0.6rem 1.25rem;border-color:#22c55e;color:#22c55e;">
+                            👤 Try Customer Dashboard
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -320,86 +329,87 @@
     <section class="features-section" id="features">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title dark">Everything Your Business Needs to Grow</h2>
-                <p class="section-subtitle dark">Professional websites and AI automation that work 24/7</p>
+                <h2 class="section-title dark">One Platform. Everything You Need.</h2>
+                <p class="section-subtitle dark">Not just a website — a complete business system with three layers working together</p>
             </div>
 
-            <div class="features-grid">
-                <!-- Feature 1: AI-Powered Chatbot -->
-                <div class="feature-card">
-                    <div class="feature-icon">💬</div>
-                    <h3 class="feature-title">AI-Powered Chatbot</h3>
+            <!-- 3-Layer Platform Cards -->
+            <div class="features-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <!-- Layer 1: Your Website -->
+                <div class="feature-card" style="border-top:3px solid #3b82f6;">
+                    <div class="feature-icon">🌐</div>
+                    <h3 class="feature-title">Your Website</h3>
+                    <p style="color:#475569;font-size:0.95rem;margin-bottom:1.25rem;line-height:1.7;">What your customers see — a professional, fast site with an AI front door that never sleeps.</p>
                     <ul class="feature-list">
-                        <li>Answers customer questions instantly</li>
-                        <li>Books appointments automatically</li>
-                        <li>Captures leads 24/7</li>
-                        <li>Works on any device</li>
+                        <li>Modern, mobile-responsive design</li>
+                        <li>AI chatbot answers questions 24/7</li>
+                        <li>Online appointment booking</li>
+                        <li>Lead capture on every page</li>
+                        <li>SEO optimized & secure HTTPS</li>
+                    </ul>
+                </div>
+
+                <!-- Layer 2: Customer Portal -->
+                <div class="feature-card" style="border-top:3px solid #22c55e;">
+                    <div class="feature-icon">👤</div>
+                    <h3 class="feature-title">Customer Portal</h3>
+                    <p style="color:#475569;font-size:0.95rem;margin-bottom:1.25rem;line-height:1.7;">Your customers log in to manage their own experience — like having an app without building one.</p>
+                    <ul class="feature-list">
+                        <li>View upcoming & past appointments</li>
+                        <li>Message your business directly</li>
+                        <li>View and pay invoices</li>
+                        <li>Manage vehicle/profile info</li>
+                        <li>Cancel or reschedule bookings</li>
+                    </ul>
+                </div>
+
+                <!-- Layer 3: Business Dashboard -->
+                <div class="feature-card" style="border-top:3px solid #f59e0b;">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Business Dashboard</h3>
+                    <p style="color:#475569;font-size:0.95rem;margin-bottom:1.25rem;line-height:1.7;">Your command center — manage everything from one place instead of juggling 5 different apps.</p>
+                    <ul class="feature-list">
+                        <li>Approve, deny & manage bookings</li>
+                        <li>Visual calendar with drag & drop</li>
+                        <li>Message customers directly</li>
+                        <li>Create & send invoices</li>
+                        <li>Track lead sources (chat, phone, web)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Supporting features row -->
+            <div class="features-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 2.5rem;">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Ready in 48 Hours</h3>
+                    <ul class="feature-list">
+                        <li>We handle all the technical work</li>
+                        <li>Free training included</li>
+                        <li>No technical skills needed</li>
+                        <li>Ongoing support & updates</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌙</div>
+                    <h3 class="feature-title">24/7 AI That Works</h3>
+                    <ul class="feature-list">
+                        <li>AI chatbot + AI phone agent</li>
+                        <li>Handles multiple customers at once</li>
+                        <li>Captures every lead, every time</li>
                         <li>Custom trained on YOUR business</li>
                     </ul>
                 </div>
 
-                <!-- Feature 2: Professional Website -->
-                <div class="feature-card">
-                    <div class="feature-icon">🌐</div>
-                    <h3 class="feature-title">Professional Website</h3>
-                    <ul class="feature-list">
-                        <li>Modern, mobile-responsive design</li>
-                        <li>Faster than competitors</li>
-                        <li>SEO optimized</li>
-                        <li>Secure HTTPS hosting</li>
-                        <li>Easy updates anytime</li>
-                    </ul>
-                </div>
-
-                <!-- Feature 3: Smart Automation -->
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3 class="feature-title">Smart Automation</h3>
-                    <ul class="feature-list">
-                        <li>Appointment reminders</li>
-                        <li>Follow-up messages</li>
-                        <li>Email notifications</li>
-                        <li>Calendar integration</li>
-                        <li>Analytics dashboard</li>
-                    </ul>
-                </div>
-
-                <!-- Feature 4: 24/7 Availability -->
-                <div class="feature-card">
-                    <div class="feature-icon">🌙</div>
-                    <h3 class="feature-title">24/7 Availability</h3>
-                    <ul class="feature-list">
-                        <li>Never miss a lead again</li>
-                        <li>Works nights and weekends</li>
-                        <li>Handles multiple customers at once</li>
-                        <li>Instant response time</li>
-                        <li>No more missed opportunities</li>
-                    </ul>
-                </div>
-
-                <!-- Feature 5: Easy Setup -->
-                <div class="feature-card">
-                    <div class="feature-icon">✔</div>
-                    <h3 class="feature-title">Easy Setup</h3>
-                    <ul class="feature-list">
-                        <li>Ready in 48 hours</li>
-                        <li>We handle everything</li>
-                        <li>Free training included</li>
-                        <li>No technical skills needed</li>
-                        <li>Ongoing support</li>
-                    </ul>
-                </div>
-
-                <!-- Feature 6: Local & Trusted -->
                 <div class="feature-card">
                     <div class="feature-icon">📍</div>
                     <h3 class="feature-title">Local & Trusted</h3>
                     <ul class="feature-list">
-                        <li>Based in New Brunswick</li>
-                        <li>Understands local market</li>
+                        <li>Based right here in New Brunswick</li>
                         <li>Free in-person setup (Fredericton/Moncton)</li>
-                        <li>No outsourcing</li>
-                        <li>Real support when you need it</li>
+                        <li>No outsourcing — real human support</li>
+                        <li>We understand your local market</li>
                     </ul>
                 </div>
             </div>
@@ -470,13 +480,13 @@
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title dark">Simple, Transparent Pricing</h2>
-                <p class="section-subtitle dark">Start free for 1 month. No credit card required. Cancel anytime.</p>
+                <p class="section-subtitle dark">First month free. No credit card. No contracts. Lock in founding member rates before they go up.</p>
             </div>
 
             <div class="pricing-grid">
                 <!-- Tier 1: Starter -->
                 <div class="pricing-card">
-                    <div class="pricing-badge">BEST FOR NEW BUSINESSES</div>
+                    <div class="pricing-badge">WEBSITE + AI CHATBOT</div>
                     <div class="pricing-header">
                         <h3 class="tier-name">Starter</h3>
                         <div class="tier-price">
@@ -488,9 +498,9 @@
                     </div>
                     <ul class="pricing-features">
                         <li>✔ Professional Website</li>
-                        <li>✔ AI Chatbot (24/7)</li>
-                        <li>✔ Appointment Booking</li>
-                        <li>✔ Lead Capture Forms</li>
+                        <li>✔ AI Chatbot — answers questions, books appointments, captures leads 24/7</li>
+                        <li>✔ Customer Portal — your clients log in to view appointments, message you, see invoices</li>
+                        <li>✔ Business Dashboard — manage bookings, messages, and invoices in one place</li>
                         <li>✔ Mobile Responsive</li>
                         <li>✔ Basic Analytics</li>
                         <li>✔ Email Support</li>
@@ -513,20 +523,20 @@
                     </div>
                     <div class="includes-text">Everything in Starter, PLUS:</div>
                     <ul class="pricing-features">
-                        <li>✔ AI Phone Assistant (24/7)</li>
-                        <li>✔ Call Transcripts</li>
-                        <li>✔ Advanced Analytics</li>
-                        <li>✔ SMS Notifications</li>
+                        <li>✔ AI Phone Assistant — a 24/7 voice agent that answers calls, takes messages, and books appointments</li>
+                        <li>✔ Call Transcripts & AI Summaries — read what customers said without listening to recordings</li>
+                        <li>✔ Advanced Analytics — track lead sources, conversion rates, and peak hours</li>
+                        <li>✔ SMS Notifications — instant alerts when you get a new booking or message</li>
                         <li>✔ Calendar Integration</li>
                         <li>✔ Priority Support</li>
-                        <li>✔ Custom Training</li>
+                        <li>✔ Custom AI Training — we train the chatbot and phone agent on your exact services, prices, and brand voice</li>
                     </ul>
                     <button class="btn btn-primary btn-large pricing-cta contact-trigger">Start Free Trial</button>
                 </div>
 
                 <!-- Tier 3: Complete -->
                 <div class="pricing-card">
-                    <div class="pricing-badge">COMPLETE SOLUTION</div>
+                    <div class="pricing-badge">FULL PLATFORM</div>
                     <div class="pricing-header">
                         <h3 class="tier-name">Complete</h3>
                         <div class="tier-price">
@@ -538,12 +548,11 @@
                     </div>
                     <div class="includes-text">Everything in Professional, PLUS:</div>
                     <ul class="pricing-features">
-                        <li>✔ Social Media Management <strong>OR</strong></li>
-                        <li>✔ Review Management</li>
-                        <li>✔ Advanced Automation</li>
+                        <li>✔ <span class="feature-with-tooltip">AI Visibility Monitoring<span class="feature-tooltip">We track how your business appears in ChatGPT, Google AI Overviews, and Perplexity each month. You get a report showing your visibility score, competitor comparison, and recommendations to improve.</span></span></li>
+                        <li>✔ Social Media Management <strong>OR</strong> Review Management</li>
+                        <li>✔ Advanced Automation — follow-ups, reminders, and workflows</li>
                         <li>✔ Multi-location Support</li>
                         <li>✔ Dedicated Account Manager</li>
-                        <li>✔ White-Label Option</li>
                     </ul>
                     <button class="btn btn-secondary btn-large pricing-cta contact-trigger">Get Custom Quote</button>
                 </div>
@@ -552,7 +561,10 @@
             <!-- Pricing Footer -->
             <div class="pricing-footer">
                 <p class="pricing-disclaimer">
-                    All plans include: 1-month free trial • Free training • Ongoing support • Cancel anytime
+                    All plans include: 1-month free trial • No credit card required • Free training • Ongoing support • Cancel anytime • No contracts
+                </p>
+                <p class="pricing-disclaimer" style="margin-top: 0.5rem;">
+                    <strong style="color: var(--orange-primary);">🔒 Founding Member Rates</strong> — Sign up now and your price is locked in, even when rates increase.
                 </p>
                 <div class="custom-pricing">
                     <p class="custom-text">Need something custom? Let's talk.</p>
@@ -879,7 +891,7 @@
                         <div class="contact-icon">✉️</div>
                         <div class="contact-text">
                             <strong>Email</strong>
-                            <p>info@thesmartlayer.com</p>
+                            <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5a33343c351a2e323f29373b282e363b233f2874393537">[email&#160;protected]</a></p>
                         </div>
                     </div>
 
@@ -966,20 +978,10 @@
                     </div>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </a>
-                <a href="mailto:info@thesmartlayer.com" class="contact-option">
+                <a href="/cdn-cgi/l/email-protection#c4adaaa2ab84b0aca1b7a9a5b6b0a8a5bda1b6eaa7aba9" class="contact-option">
                     <div class="contact-option-icon">✉️</div>
                     <div class="contact-option-text">
                         <strong>Email Us</strong>
-                        <span>info@thesmartlayer.com</span>
+                        <span><span class="__cf_email__" data-cfemail="a2cbccc4cde2d6cac7d1cfc3d0d6cec3dbc7d08cc1cdcf">[email&#160;protected]</span></span>
                     </div>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-<script src="smartlayer-chatbot.js"></script>
-</body>
-
-</html>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill
