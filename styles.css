@@ -2381,3 +2381,163 @@ body {
     color: var(--blue-primary);
     transform: translateX(4px);
 }
+/* ==========================================
+   AUDIT SECTION
+   ========================================== */
+.audit-section {
+    padding: var(--section-padding) 0;
+    background: linear-gradient(135deg, var(--navy-deep) 0%, #1a2744 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.audit-highlights {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.audit-highlight-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    transition: var(--transition-smooth);
+}
+
+.audit-highlight-item:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.audit-highlight-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.audit-highlight-text {
+    color: var(--gray-300);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.audit-cta-wrapper {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.audit-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.5s ease, opacity 0.4s ease, margin 0.4s ease;
+}
+
+.audit-form-container.active {
+    max-height: 600px;
+    opacity: 1;
+    margin-top: 2rem;
+}
+
+.audit-form {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 2.5rem;
+}
+
+.audit-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.audit-form .form-group label {
+    color: var(--white);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.audit-form .form-group input {
+    padding: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+    font-size: 1rem;
+    font-family: var(--font-primary);
+    transition: var(--transition-smooth);
+    width: 100%;
+}
+
+.audit-form .form-group input:focus {
+    outline: none;
+    border-color: var(--blue-primary);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.audit-form .form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.audit-submit {
+    width: 100%;
+    justify-content: center;
+}
+
+/* ==========================================
+   4-COLUMN PRICING GRID
+   ========================================== */
+.pricing-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* ==========================================
+   FAQ AI LINKS
+   ========================================== */
+.faq-ai-link {
+    color: var(--blue-primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+}
+
+.faq-ai-link:hover {
+    color: var(--blue-hover);
+    text-decoration: underline;
+}
+
+/* ==========================================
+   RESPONSIVE - AUDIT & PRICING UPDATES
+   ========================================== */
+@media (max-width: 1024px) {
+    .audit-highlights {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .pricing-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .audit-highlights {
+        grid-template-columns: 1fr;
+    }
+    .audit-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .pricing-grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
