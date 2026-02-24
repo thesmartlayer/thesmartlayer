@@ -384,7 +384,7 @@
                 </div>
                 <div class="stat-item">
                     <div class="stat-icon">🎯</div>
-                    <div class="stat-number-text">3-in-1</div>
+                    <div class="stat-number-text">All-in-1</div>
                     <div class="stat-label">Complete Platform</div>
                     <div class="stat-description">Website + customer portal + dashboard</div>
                 </div>
@@ -400,10 +400,10 @@
                 <p class="section-subtitle" style="margin-top: 1rem;">Our live demo site has a working AI chatbot right now. Ask it anything.</p>
                 <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem;">
                     <a href="#demo" class="btn btn-primary btn-large">Try the Live Demo</a>
-                    <a href="tel:+18554042424" class="btn btn-secondary btn-large vapi-call-btn">
+                    <button class="btn btn-secondary btn-large vapi-call-btn">
                         <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                         Call Our AI Agent
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -737,8 +737,10 @@
                 <p class="subscribe-subtitle">Get tips on AI automation and business growth. No spam, ever.</p>
                 <form class="subscribe-form" name="subscribe" method="POST" data-netlify="true">
                     <input type="hidden" name="form-name" value="subscribe">
-                    <input type="email" name="email" placeholder="Your email address" required>
-                    <button type="submit" class="btn btn-primary">Subscribe</button>
+                    <div class="subscribe-input-group">
+                        <input type="email" name="email" class="subscribe-input" placeholder="Your email address" required>
+                        <button type="submit" class="btn btn-primary subscribe-btn">Subscribe</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -775,11 +777,11 @@
                     <div class="contact-option-text"><strong>Chat with AI</strong><span>Get instant answers right now</span></div>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </button>
-                <a href="tel:+18554042424" class="contact-option vapi-call-btn">
+                <button class="contact-option vapi-call-btn">
                     <div class="contact-option-icon">📞</div>
                     <div class="contact-option-text"><strong>Call AI Agent</strong><span>(855) 404-AIAI (2424)</span></div>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </a>
+                </button>
                 <a href="/cdn-cgi/l/email-protection#97fef9f1f8d7e3fff2e4faf6e5e3fbf6eef2e5b9f4f8fa" class="contact-option">
                     <div class="contact-option-icon">✉️</div>
                     <div class="contact-option-text"><strong>Email Us</strong><span><span class="__cf_email__" data-cfemail="8de4e3ebe2cdf9e5e8fee0ecfff9e1ecf4e8ffa3eee2e0">[email&#160;protected]</span></span></div>
@@ -802,6 +804,14 @@
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     if (window.vapiInstance) window.vapiInstance.start(VAPI_ASSISTANT_ID);
+                });
+            });
+        };
+        s.onerror = function() {
+            document.querySelectorAll('.vapi-call-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.location.href = 'tel:+18554042424';
                 });
             });
         };
