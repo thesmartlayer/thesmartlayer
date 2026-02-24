@@ -1097,14 +1097,13 @@ body {
 
 /* Featured Card (Professional) */
 .pricing-card.featured {
-    transform: scale(1.05);
     border-color: var(--blue-primary);
     box-shadow: 0 20px 60px rgba(59, 130, 246, 0.25);
     background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
 }
 
 .pricing-card.featured:hover {
-    transform: scale(1.05) translateY(-8px);
+    transform: translateY(-8px);
     box-shadow: 0 24px 64px rgba(59, 130, 246, 0.3);
 }
 
@@ -2193,6 +2192,9 @@ body {
     display: flex;
     gap: 0.75rem;
     margin-bottom: 1rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .subscribe-input {

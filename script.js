@@ -411,3 +411,21 @@ if (demoCustomerBtn) {
 }
 
 console.log('🚀 The Smart Layer - Scripts loaded successfully!');
+
+// ==========================================
+// INDUSTRY DEMO LINKS (from Industries section)
+// ==========================================
+document.querySelectorAll('.industry-link[data-demo]').forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const industry = link.getAttribute('data-demo');
+        const card = document.querySelector('.industry-card[data-industry="' + industry + '"]');
+        if (card) card.click();
+        const demoSection = document.getElementById('demo');
+        if (demoSection) {
+            setTimeout(() => {
+                demoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    });
+});

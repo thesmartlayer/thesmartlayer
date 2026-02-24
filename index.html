@@ -537,7 +537,7 @@
                         <li>Parts availability checking</li>
                         <li>Maintenance reminders</li>
                     </ul>
-                    <a href="#demo" class="industry-link">View Auto Demo →</a>
+                    <a href="#demo" class="industry-link" data-demo="auto">View Auto Demo →</a>
                 </div>
                 <div class="industry-card">
                     <div class="industry-card-icon">🔥</div>
@@ -548,7 +548,7 @@
                         <li>Seasonal maintenance</li>
                         <li>Quote generation</li>
                     </ul>
-                    <a href="#demo" class="industry-link">View HVAC Demo →</a>
+                    <a href="#demo" class="industry-link" data-demo="hvac">View HVAC Demo →</a>
                 </div>
                 <div class="industry-card">
                     <div class="industry-card-icon">🦷</div>
@@ -713,7 +713,7 @@
                     </div>
                     <div class="contact-detail">
                         <div class="contact-icon">✉️</div>
-                        <div class="contact-text"><strong>Email</strong><p><a href="/cdn-cgi/l/email-protection#147d7a727b54607c71677975666078756d71663a777b79" style="color: var(--gray-300); text-decoration: none;"><span class="__cf_email__" data-cfemail="c3aaada5ac83b7aba6b0aea2b1b7afa2baa6b1eda0acae">[email&#160;protected]</span></a></p></div>
+                        <div class="contact-text"><strong>Email</strong><p><a id="email-contact" href="#" style="color: var(--gray-300); text-decoration: none;"></a></p></div>
                     </div>
                     <div class="business-hours">
                         <h4>Business Hours</h4>
@@ -782,15 +782,28 @@
                     <div class="contact-option-text"><strong>Call AI Agent</strong><span>(855) 404-AIAI (2424)</span></div>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </button>
-                <a href="/cdn-cgi/l/email-protection#97fef9f1f8d7e3fff2e4faf6e5e3fbf6eef2e5b9f4f8fa" class="contact-option">
+                <a id="email-modal" href="#" class="contact-option">
                     <div class="contact-option-icon">✉️</div>
-                    <div class="contact-option-text"><strong>Email Us</strong><span><span class="__cf_email__" data-cfemail="8de4e3ebe2cdf9e5e8fee0ecfff9e1ecf4e8ffa3eee2e0">[email&#160;protected]</span></span></div>
+                    <div class="contact-option-text"><strong>Email Us</strong><span id="email-modal-text"></span></div>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </a>
             </div>
         </div>
     </div>
 
+    <!-- Email Protection (avoids Cloudflare obfuscation) -->
+    <script>
+    (function(){
+        var u='info'; var d='thesmartlayer'; var t='com';
+        var e=u+'@'+d+'.'+t;
+        var c=document.getElementById('email-contact');
+        if(c){c.href='mai'+'lto:'+e; c.textContent=e;}
+        var m=document.getElementById('email-modal');
+        if(m){m.href='mai'+'lto:'+e;}
+        var mt=document.getElementById('email-modal-text');
+        if(mt){mt.textContent=e;}
+    })();
+    </script>
     <!-- Vapi Web Client -->
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     (function() {
