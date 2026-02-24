@@ -800,4 +800,16 @@
             window.vapiInstance = new window.Vapi(VAPI_PUBLIC_KEY);
             document.querySelectorAll('.vapi-call-btn').forEach(function(btn) {
                 btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.vapiInstance) window.vapiInstance.start(VAPI_ASSISTANT_ID);
+                });
+            });
+        };
+        document.head.appendChild(s);
+    })();
+    </script>
+    <script src="script.js"></script>
+    <script src="smartlayer-chatbot.js"></script>
+</body>
+</html>
   
