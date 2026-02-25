@@ -138,7 +138,7 @@ const industryUrls = {
         name: 'Dental Office'
     },
     hvac: {
-        url: 'https://demositeauto.netlify.app',
+        url: 'https://hvac.thesmartlayer.com',
         name: 'HVAC Services'
     },
     home: {
@@ -326,5 +326,34 @@ document.querySelectorAll('.industry-link[data-demo]').forEach(link => {
         }
     });
 });
+
+// ==========================================
+// FREE AI AUDIT FORM TOGGLE
+// ==========================================
+const auditToggleBtn = document.getElementById('audit-toggle-btn');
+const auditFormContainer = document.getElementById('audit-form-container');
+
+if (auditToggleBtn && auditFormContainer) {
+    auditToggleBtn.addEventListener('click', () => {
+        // Toggle the active class to show/hide the form
+        const isActive = auditFormContainer.classList.toggle('active');
+        
+        // Change the button text based on state
+        if (isActive) {
+            auditToggleBtn.textContent = 'Close Audit Form';
+            auditToggleBtn.classList.add('btn-secondary');
+            auditToggleBtn.classList.remove('btn-primary');
+            
+            // Optional: Smooth scroll slightly down so the form is fully in view
+            setTimeout(() => {
+                auditFormContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        } else {
+            auditToggleBtn.textContent = 'Request Your Free Audit';
+            auditToggleBtn.classList.add('btn-primary');
+            auditToggleBtn.classList.remove('btn-secondary');
+        }
+    });
+}
 
 console.log('ðŸš€ The Smart Layer - Scripts loaded successfully!');
