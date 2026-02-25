@@ -2650,3 +2650,102 @@ body {
 .contact-option-text span {
     color: #a0a0a0 !important;
 }
+
+/* ==========================================
+   GLOBAL PREMIUM DARK THEME OVERRIDE
+   ========================================== */
+:root {
+    --primary-color: #E53935 !important; /* Sharp Red Accent */
+    --primary-hover: #D32F2F !important;
+    --navy-deep: #0A0A0A !important; /* Overriding the old navy background */
+}
+
+body, section, .pricing-section, .features-section, .results-section, .industries-section {
+    background-color: #0A0A0A !important; /* Rich Black */
+    background-image: none !important;
+    color: #F5F5F5 !important;
+}
+
+/* Force light section cards into dark mode */
+.feature-card, .pricing-card, .industry-card, .stat-item, .faq-item {
+    background-color: #121212 !important; /* Dark Slate Grey */
+    border: 1px solid #222 !important;
+    color: #F5F5F5 !important;
+}
+
+/* Update text colors */
+.section-title.dark, .section-subtitle.dark, .feature-title, .tier-name, .industry-card-title, h1, h2, h3, h4, p {
+    color: #F5F5F5 !important;
+}
+
+/* Red Button Overrides */
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover) !important;
+}
+
+.btn-secondary {
+    background-color: transparent !important;
+    border: 1px solid var(--primary-color) !important;
+    color: var(--primary-color) !important;
+}
+.btn-secondary:hover {
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+}
+
+/* Fix specific gradient text and accents */
+.gradient-text {
+    background: linear-gradient(135deg, #ff4b4b, #b71c1c) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+.logo-accent {
+    color: var(--primary-color) !important;
+}
+/* ==========================================
+   DARK THEME BUG FIXES & PREMIUM BUTTONS
+   ========================================== */
+
+/* 1. High-Converting 'Crisp White' Primary Buttons */
+.btn-primary, .pricing-cta.btn-primary, .pricing-cta.btn-secondary {
+    background-color: #F5F5F5 !important;
+    color: #050505 !important; /* Dark text for sharp contrast */
+    font-weight: 700 !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover, .pricing-cta:hover {
+    background-color: #ffffff !important;
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-2px);
+}
+
+/* 2. Fix the Glaring White 'Most Popular' Pricing Card */
+.pricing-card.featured {
+    background-color: #1A1A1D !important; /* Premium dark slate */
+    border: 1px solid #E53935 !important; /* Red accent border */
+    box-shadow: 0 0 20px rgba(229, 57, 53, 0.15) !important; /* Subtle red glow */
+}
+.pricing-card.featured * {
+    color: #F5F5F5 !important; /* Force text inside to be light */
+}
+
+/* 3. Fix Invisible Text in FAQ & Industries Footer */
+.faq-question {
+    background-color: #1A1A1D !important;
+    border: 1px solid #333 !important;
+}
+.faq-question span, .faq-answer p, .industries-footer-text {
+    color: #F5F5F5 !important; 
+}
+.industries-footer {
+    background-color: #121212 !important;
+    border: 1px solid #333 !important;
+}
