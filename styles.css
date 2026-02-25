@@ -2570,32 +2570,83 @@ body {
     background-color: #050505; /* Solid Midnight Ember Black */
 }
 /* ==========================================
-   LAYOUT REPAIRS: AUDIT FORM & DEMO IFRAME
+   LAYOUT REPAIRS & DARK THEME OVERHAULS
    ========================================== */
 
-/* Clean up the Audit Form Presentation */
-.audit-form-container.active {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2.5rem;
-    background-color: #1A1A1D; /* Slate grey to match your aesthetic */
-    border: 1px solid #333;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+/* 1. Stretch Demo Iframe to match left column */
+.demo-grid {
+    align-items: stretch !important;
 }
-
-/* Force the iframe to fill the empty space below it */
-.demo-window {
+.demo-preview {
     display: flex;
     flex-direction: column;
     height: 100%;
-    min-height: 650px; /* Forces it to match the height of the cards */
+}
+.browser-frame {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 550px; 
+}
+.browser-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+#demo-iframe {
+    flex-grow: 1;
+    height: 100%;
+    width: 100%;
+    border: none;
+    border-radius: 0 0 8px 8px;
+    background-color: #050505;
 }
 
-#demo-iframe {
-    flex-grow: 1; /* Stretches the frame to the bottom */
+/* 2. Center & Style the Audit Form */
+.audit-form-container.active {
+    display: block !important; 
+    max-width: 800px;
     width: 100%;
-    border-radius: 0 0 8px 8px;
-    border: none;
-    background-color: #050505;
+    margin: 2rem auto !important; 
+    padding: 2.5rem;
+    background-color: #1A1A1D; 
+    border: 1px solid #333;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+}
+
+/* 3. Dark Theme Overhaul for Contact Modal */
+.contact-modal {
+    background-color: #121212 !important; 
+    border: 1px solid #333 !important;
+}
+.contact-modal-title {
+    color: #ffffff !important;
+}
+.contact-modal-subtitle {
+    color: #a0a0a0 !important;
+}
+.contact-modal-close {
+    color: #a0a0a0 !important;
+    transition: color 0.3s ease;
+}
+.contact-modal-close:hover {
+    color: #E53935 !important;
+}
+.contact-option {
+    background-color: #1A1A1D !important;
+    border: 1px solid #333 !important;
+    transition: all 0.3s ease;
+}
+.contact-option:hover {
+    border-color: #E53935 !important; 
+    background-color: #222 !important;
+    transform: translateY(-2px);
+}
+.contact-option-text strong {
+    color: #ffffff !important;
+}
+.contact-option-text span {
+    color: #a0a0a0 !important;
 }
