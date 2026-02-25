@@ -2168,7 +2168,7 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.subscribe-wrapper {
+.subscribe-content {
     max-width: 640px;
     margin: 0 auto;
     text-align: center;
@@ -2504,6 +2504,7 @@ body {
 .pricing-grid-4 {
     grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
+    align-items: stretch;
 }
 
 /* ==========================================

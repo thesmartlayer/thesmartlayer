@@ -809,26 +809,33 @@
     (function() {
         var VAPI_PUBLIC_KEY = 'd338082c-bd82-48ba-bd6a-fdfe38aecf1c';
         var VAPI_ASSISTANT_ID = 'c0b18623-0e91-4518-af9f-96e9484456ed';
-        var s = document.createElement('script');
-        s.src = 'https://cdn.vapi.ai/vapi-web-client.js';
-        s.onload = function() {
-            window.vapiInstance = new window.Vapi(VAPI_PUBLIC_KEY);
+
+        function setupVapiButtons(startCall) {
             document.querySelectorAll('.vapi-call-btn').forEach(function(btn) {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    if (window.vapiInstance) window.vapiInstance.start(VAPI_ASSISTANT_ID);
+                    e.stopPropagation();
+                    startCall();
                 });
             });
-        };
-        s.onerror = function() {
-            document.querySelectorAll('.vapi-call-btn').forEach(function(btn) {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    window.location.href = 'tel:+18554042424';
+        }
+
+        // Load Vapi SDK via dynamic ES module import
+        import('https://cdn.jsdelivr.net/npm/@vapi-ai/web/+esm')
+            .then(function(module) {
+                var Vapi = module.default;
+                window.vapiInstance = new Vapi(VAPI_PUBLIC_KEY);
+                setupVapiButtons(function() {
+                    window.vapiInstance.start(VAPI_ASSISTANT_ID);
+                });
+                console.log('Vapi SDK loaded successfully');
+            })
+            .catch(function(err) {
+                console.warn('Vapi SDK failed to load:', err);
+                setupVapiButtons(function() {
+                    alert('Call us at (855) 404-AIAI (2424)');
                 });
             });
-        };
-        document.head.appendChild(s);
     })();
     </script>
     <script src="script.js"></script>
