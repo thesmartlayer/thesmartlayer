@@ -418,14 +418,24 @@ console.log('🚀 The Smart Layer - Scripts loaded successfully!');
 document.querySelectorAll('.industry-link[data-demo]').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopImmediatePropagation();
         const industry = link.getAttribute('data-demo');
+        const industryData = industryUrls[industry];
+        if (!industryData) return;
+
+        // Switch iframe directly
+        const iframe = document.getElementById('demo-iframe');
+        const urlDisplay = document.getElementById('demo-url');
+        if (iframe) iframe.src = industryData.url;
+        if (urlDisplay) urlDisplay.textContent = industryData.url.replace('https://', '');
+
+        // Update active card in demo section
+        document.querySelectorAll('.industry-card[data-industry]').forEach(c => c.classList.remove('active'));
         const card = document.querySelector('.industry-card[data-industry="' + industry + '"]');
-        if (card) card.click();
+        if (card) card.classList.add('active');
+
+        // Scroll to demo
         const demoSection = document.getElementById('demo');
-        if (demoSection) {
-            setTimeout(() => {
-                demoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
-        }
+        if (demoSection) demoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 });
