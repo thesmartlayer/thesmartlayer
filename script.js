@@ -357,3 +357,90 @@ if (auditToggleBtn && auditFormContainer) {
 }
 
 console.log('ðŸš€ The Smart Layer - Scripts loaded successfully!');
+
+// ==========================================
+// FULLSCREEN DEMO & VIEW TOGGLES
+// ==========================================
+const maximizeBtn = document.getElementById('maximize-btn');
+const fullscreenOverlay = document.getElementById('fullscreen-overlay');
+const fullscreenClose = document.getElementById('fullscreen-close');
+const fullscreenIframe = document.getElementById('fullscreen-iframe');
+const fullscreenUrlText = document.getElementById('fullscreen-url-text');
+const demoIframeMain = document.getElementById('demo-iframe');
+const demoUrlText = document.getElementById('demo-url');
+
+// Handle the Maximize Button
+if (maximizeBtn && fullscreenOverlay) {
+    maximizeBtn.addEventListener('click', () => {
+        fullscreenUrlText.textContent = demoUrlText.textContent;
+        fullscreenIframe.src = demoIframeMain.src;
+        fullscreenOverlay.classList.add('active');
+    });
+}
+
+// Handle the Fullscreen Close Button
+if (fullscreenClose) {
+    fullscreenClose.addEventListener('click', () => {
+        fullscreenOverlay.classList.remove('active');
+        // Clear iframe source after a slight delay so audio/video stops playing
+        setTimeout(() => { fullscreenIframe.src = ''; }, 300);
+    });
+}
+
+// Handle Owner vs Customer View Toggles
+const ownerBtn = document.getElementById('demo-owner-btn');
+const customerBtn = document.getElementById('demo-customer-btn');
+
+if (ownerBtn && customerBtn) {
+    ownerBtn.addEventListener('click', () => {
+        ownerBtn.classList.replace('btn-secondary', 'btn-primary');
+        customerBtn.classList.replace('btn-primary', 'btn-secondary');
+        alert('This changes the demo to the Business Owner Dashboard view.');
+    });
+
+    customerBtn.addEventListener('click', () => {
+        customerBtn.classList.replace('btn-secondary', 'btn-primary');
+        ownerBtn.classList.replace('btn-primary', 'btn-secondary');
+        alert('This changes the demo to the Customer-facing Website view.');
+    });
+}
+
+// ==========================================
+// CONTACT MODAL TOGGLES
+// ==========================================
+const contactTriggers = document.querySelectorAll('.contact-trigger');
+const contactModal = document.getElementById('contact-modal');
+const contactModalClose = document.getElementById('contact-modal-close');
+const contactChatBtn = document.getElementById('contact-chat');
+
+if (contactModal) {
+    // Open modal when any "Try Free" or "Contact" button is clicked
+    contactTriggers.forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            contactModal.classList.add('active');
+        });
+    });
+
+    // Close modal via the "X" button
+    if (contactModalClose) {
+        contactModalClose.addEventListener('click', () => {
+            contactModal.classList.remove('active');
+        });
+    }
+
+    // Close modal by clicking outside the box
+    contactModal.addEventListener('click', (e) => {
+        if (e.target === contactModal) {
+            contactModal.classList.remove('active');
+        }
+    });
+}
+
+// Handle the "Chat with AI" option inside the modal
+if (contactChatBtn) {
+    contactChatBtn.addEventListener('click', () => {
+        contactModal.classList.remove('active');
+        alert("This will open your AI Chatbot widget.");
+    });
+}

@@ -2569,3 +2569,33 @@ body {
     background-image: none !important; 
     background-color: #050505; /* Solid Midnight Ember Black */
 }
+/* ==========================================
+   LAYOUT REPAIRS: AUDIT FORM & DEMO IFRAME
+   ========================================== */
+
+/* Clean up the Audit Form Presentation */
+.audit-form-container.active {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2.5rem;
+    background-color: #1A1A1D; /* Slate grey to match your aesthetic */
+    border: 1px solid #333;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Force the iframe to fill the empty space below it */
+.demo-window {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 650px; /* Forces it to match the height of the cards */
+}
+
+#demo-iframe {
+    flex-grow: 1; /* Stretches the frame to the bottom */
+    width: 100%;
+    border-radius: 0 0 8px 8px;
+    border: none;
+    background-color: #050505;
+}
