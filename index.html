@@ -61,7 +61,7 @@
                     <a href="#features" class="nav-link">Solutions</a>
                     <a href="#industries" class="nav-link">Industries</a>
                     <a href="#pricing" class="nav-link">Pricing</a>
-                    <a href="#" class="nav-link contact-trigger">Contact</a>
+                    <a href="#contact" class="nav-link">Contact</a>
                     <a href="/login.html" class="btn btn-secondary nav-cta">Client Login</a>
                     <button class="btn btn-primary nav-cta contact-trigger">Try Free for 1 Month</button>
                 </div>
@@ -807,33 +807,35 @@
     <!-- Vapi Web Client -->
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     (function() {
-        // Phone call handler - shows number for desktop, dials on mobile
-        function handleCallClick(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            // Check if mobile
-            if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                window.location.href = 'tel:+18554042424';
-            } else {
-                // Desktop: show a clean notification
-                var existing = document.getElementById('call-notification');
-                if (existing) existing.remove();
-                var notif = document.createElement('div');
-                notif.id = 'call-notification';
-                notif.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#0f172a;border:2px solid #3b82f6;border-radius:16px;padding:2.5rem;text-align:center;z-index:100000;box-shadow:0 20px 60px rgba(0,0,0,0.5);max-width:400px;width:90%;';
-                notif.innerHTML = '<div style="font-size:3rem;margin-bottom:1rem;">📞</div><h3 style="color:#fff;font-size:1.25rem;margin-bottom:0.5rem;">Call Our AI Agent</h3><p style="color:#94a3b8;margin-bottom:1.5rem;font-size:0.95rem;">Our AI phone agent is available 24/7</p><a href="tel:+18554042424" style="display:block;background:#3b82f6;color:#fff;padding:0.75rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:700;font-size:1.1rem;margin-bottom:0.75rem;">(855) 404-AIAI (2424)</a><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.9rem;padding:0.5rem;">Close</button>';
-                document.body.appendChild(notif);
-                // Backdrop
-                var backdrop = document.createElement('div');
-                backdrop.id = 'call-backdrop';
-                backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;';
-                backdrop.onclick = function() { notif.remove(); backdrop.remove(); };
-                document.body.appendChild(backdrop);
-            }
+        var VAPI_PUBLIC_KEY = 'd338082c-bd82-48ba-bd6a-fdfe38aecf1c';
+        var VAPI_ASSISTANT_ID = 'c0b18623-0e91-4518-af9f-96e9484456ed';
+
+        function setupVapiButtons(startCall) {
+            document.querySelectorAll('.vapi-call-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    startCall();
+                });
+            });
         }
-        document.querySelectorAll('.vapi-call-btn').forEach(function(btn) {
-            btn.addEventListener('click', handleCallClick);
-        });
+
+        // Load Vapi SDK via dynamic ES module import
+        import('https://cdn.jsdelivr.net/npm/@vapi-ai/web/+esm')
+            .then(function(module) {
+                var Vapi = module.default;
+                window.vapiInstance = new Vapi(VAPI_PUBLIC_KEY);
+                setupVapiButtons(function() {
+                    window.vapiInstance.start(VAPI_ASSISTANT_ID);
+                });
+                console.log('Vapi SDK loaded successfully');
+            })
+            .catch(function(err) {
+                console.warn('Vapi SDK failed to load:', err);
+                setupVapiButtons(function() {
+                    alert('Call us at (855) 404-AIAI (2424)');
+                });
+            });
     })();
     </script>
     <script src="script.js"></script>
