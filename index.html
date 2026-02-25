@@ -804,42 +804,39 @@
         if(mt){mt.textContent=e;}
     })();
     </script>
-    <!-- Vapi Web Client -->
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-    (function() {
+   
+<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi.umd.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
         var VAPI_PUBLIC_KEY = 'd338082c-bd82-48ba-bd6a-fdfe38aecf1c';
         var VAPI_ASSISTANT_ID = 'c0b18623-0e91-4518-af9f-96e9484456ed';
+        
+        var vapiButtons = document.querySelectorAll('.vapi-call-btn');
+        
+        vapiButtons.forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // If Vapi library fails to load, fallback to standard phone call
+                if (typeof window.Vapi === 'undefined') {
+                    console.warn("Vapi SDK missing. Routing to phone.");
+                    window.location.href = 'tel:+18554042424';
+                    return;
+                }
 
-        function setupVapiButtons(startCall) {
-            document.querySelectorAll('.vapi-call-btn').forEach(function(btn) {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    startCall();
-                });
+                try {
+                    var vapi = new window.Vapi(VAPI_PUBLIC_KEY);
+                    vapi.start(VAPI_ASSISTANT_ID);
+                } catch (error) {
+                    console.error("Vapi connection failed:", error);
+                    window.location.href = 'tel:+18554042424'; 
+                }
             });
-        }
-
-        // Load Vapi SDK via dynamic ES module import
-        import('https://cdn.jsdelivr.net/npm/@vapi-ai/web/+esm')
-            .then(function(module) {
-                var Vapi = module.default;
-                window.vapiInstance = new Vapi(VAPI_PUBLIC_KEY);
-                setupVapiButtons(function() {
-                    window.vapiInstance.start(VAPI_ASSISTANT_ID);
-                });
-                console.log('Vapi SDK loaded successfully');
-            })
-            .catch(function(err) {
-                console.warn('Vapi SDK failed to load:', err);
-                setupVapiButtons(function() {
-                    alert('Call us at (855) 404-AIAI (2424)');
-                });
-            });
-    })();
+        });
+    });
     </script>
     <script src="script.js"></script>
     <script src="smartlayer-chatbot.js"></script>
 </body>
 </html>
-  
