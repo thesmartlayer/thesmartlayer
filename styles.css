@@ -2545,3 +2545,27 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* 1. Hide the "Click-Blockers" */
+.contact-modal-overlay, 
+.fullscreen-overlay, 
+.audit-form-container,
+.loading-overlay {
+    display: none !important;
+    pointer-events: none; /* Allows clicks to pass through if invisible */
+}
+
+/* 2. Show them and enable clicks when .active is added */
+.contact-modal-overlay.active, 
+.fullscreen-overlay.active, 
+.audit-form-container.active,
+.loading-overlay.active {
+    display: flex !important;
+    pointer-events: auto; /* Re-enables clicking on the form/modal */
+}
+
+/* 3. Fix the 404 Error: If you don't have bg-texture.png, remove this line or use a color */
+body {
+    background-image: none !important; 
+    background-color: #050505; /* Solid Midnight Ember Black */
+}
