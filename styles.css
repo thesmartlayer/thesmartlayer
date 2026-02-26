@@ -1259,6 +1259,23 @@ body {
     display: inline-block;
 }
 
+.outbound-link {
+    color: var(--blue-primary);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: var(--transition-smooth);
+    margin-top: auto;
+    display: inline-block;
+    position: relative;
+    z-index: 10;
+}
+
+.outbound-link:hover {
+    color: var(--blue-hover);
+    transform: translateX(4px);
+}
+
 .industries-footer {
     text-align: center;
     margin-top: 4rem;
@@ -1274,8 +1291,6 @@ body {
     margin-bottom: 1.5rem;
     font-weight: 600;
 }
-
-
 /* ==========================================
    FAQ SECTION
    ========================================== */
