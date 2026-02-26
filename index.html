@@ -803,28 +803,28 @@
     </script>
 
 <script src="https://cdn.jsdelivr.net/gh/vapi-ai/html-script-tag@latest/dist/widget.umd.js"></script>
-<script>
-  // 1. Initialize the official Widget "Brain"
-  const vapiInstance = window.vapiSDK.run({
-    apiKey: "d338082c-bd82-48ba-bd6a-fdfe38aecf1c",
-    assistantId: "c0b18623-0e91-4518-af9f-96e9484456ed",
-    config: {
-      position: "bottom-right", // Still hidden by your CSS
-    },
-  });
 
-  // 2. Tell your custom buttons to trigger that brain
-  document.addEventListener("DOMContentLoaded", function() {
-    const vapiButtons = document.querySelectorAll('.vapi-call-btn');
-    vapiButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        vapiInstance.start(); 
-      });
+<script>
+  var vapiInstance = null;
+
+  // 2. Initialize the official Widget with the correct 'assistant' key
+  window.addEventListener('load', function() {
+    vapiInstance = window.vapiSDK.run({
+      apiKey: "d338082c-bd82-48ba-bd6a-fdfe38aecf1c",
+      assistant: "c0b18623-0e91-4518-af9f-96e9484456ed", // Must be 'assistant' for the Widget
+      config: { position: "bottom-right" } // This is hidden by your CSS
     });
   });
-</script>
 
+  // 3. Simple click listener for your custom button
+  document.addEventListener("click", function(e) {
+    if (e.target.closest('.vapi-call-btn')) {
+      e.preventDefault();
+      if (vapiInstance) {
+        vapiInstance.start(); 
+      }
+    }
+  });
+</script>
 </body>
 </html>
