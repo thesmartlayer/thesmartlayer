@@ -801,39 +801,66 @@
         if(mt){mt.textContent=e;}
     })();
     </script>
-   
+
 <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi.umd.js"></script>
     <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // 1. Initialize variables
         var VAPI_PUBLIC_KEY = 'd338082c-bd82-48ba-bd6a-fdfe38aecf1c';
         var VAPI_ASSISTANT_ID = 'c0b18623-0e91-4518-af9f-96e9484456ed';
-        
+        var isCallActive = false;
+        var vapiInstance = null;
+
+        // 2. Check if Vapi loaded correctly, then initialize ONCE
+        if (typeof window.Vapi !== 'undefined') {
+            vapiInstance = new window.Vapi(VAPI_PUBLIC_KEY);
+            
+            // Listen for call state changes so we know when to hang up
+            vapiInstance.on('call-start', () => { 
+                isCallActive = true; 
+                console.log("Vapi Call connected!"); 
+            });
+            vapiInstance.on('call-end', () => { 
+                isCallActive = false; 
+                console.log("Vapi Call disconnected."); 
+            });
+            vapiInstance.on('error', (e) => { 
+                console.error("Vapi encountered an error:", e); 
+                isCallActive = false;
+            });
+        } else {
+            console.error("Vapi SDK failed to load from the CDN.");
+        }
+
+        // 3. Attach logic to the button(s)
         var vapiButtons = document.querySelectorAll('.vapi-call-btn');
         
         vapiButtons.forEach(function(btn) {
             btn.addEventListener('click', function(e) {
-                e.preventDefault();
+                e.preventDefault(); // Stop the default 'tel:' link behavior
                 e.stopPropagation();
                 
-                // If Vapi library fails to load, fallback to standard phone call
-                if (typeof window.Vapi === 'undefined') {
-                    console.warn("Vapi SDK missing. Routing to phone.");
-                    window.location.href = 'tel:+18554042424';
+                if (!vapiInstance) {
+                    alert("Voice agent is still loading, please try again in a moment.");
                     return;
                 }
 
-                try {
-                    var vapi = new window.Vapi(VAPI_PUBLIC_KEY);
-                    vapi.start(VAPI_ASSISTANT_ID);
-                } catch (error) {
-                    console.error("Vapi connection failed:", error);
-                    window.location.href = 'tel:+18554042424'; 
+                if (isCallActive) {
+                    // If already on a call, hang up
+                    vapiInstance.stop();
+                } else {
+                    // If not on a call, start one
+                    try {
+                        vapiInstance.start(VAPI_ASSISTANT_ID);
+                    } catch (error) {
+                        console.error("Failed to start Vapi call:", error);
+                        // Only fallback to real phone dialer if it completely fails
+                        window.location.href = 'tel:+18554042424'; 
+                    }
                 }
             });
         });
     });
-    </script>
-    <script src="script.js"></script>
-    <script src="smartlayer-chatbot.js"></script>
+    </script>   
 </body>
 </html>
