@@ -802,22 +802,25 @@
     })();
     </script>
 
-<script src="https://unpkg.com/retell-client-js-sdk@latest/dist/retell-client-js-sdk.js"></script>
-<script>
+<script type="module">
   // --- 1. RETELL AI LOGIC ---
-  const retellClient = new RetellClient();
+  // Import the exact Web Client module safely
+  import { RetellWebClient } from "https://esm.run/retell-client-js-sdk";
+
+  // Initialize using the CORRECT name
+  const retellWebClient = new RetellWebClient();
 
   async function startRetellCall() {
     try {
       const response = await fetch("/.netlify/functions/start-call");
       const data = await response.json();
       
-      await retellClient.startCall({
+      await retellWebClient.startCall({
         accessToken: data.accessToken,
       });
       console.log("Retell Call Started");
     } catch (error) {
-      console.error("Retell failed:", error);
+      console.error("Retell failed to start:", error);
     }
   }
 
@@ -825,12 +828,13 @@
   document.addEventListener("click", function(e) {
     if (e.target.closest('.vapi-call-btn')) {
       e.preventDefault();
+      document.getElementById('contact-modal').style.display = 'none'; // Closes modal so you can browse while talking
       startRetellCall();
     }
   });
 
   // --- 2. MODAL & UI LOGIC ---
-  // Opens the "How to Connect" modal when "Try Free" is clicked
+  // Opens the "How to Connect" modal
   document.querySelectorAll('.contact-trigger').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -838,7 +842,7 @@
     });
   });
 
-  // Closes the modal when the 'X' is clicked
+  // Closes the modal with the 'X'
   const closeBtn = document.getElementById('contact-modal-close');
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
@@ -846,7 +850,7 @@
     });
   }
 
-  // Closes modal if user clicks the dark background
+  // Closes modal if clicking the dark background
   window.addEventListener('click', (e) => {
     const modal = document.getElementById('contact-modal');
     if (e.target === modal) {
@@ -854,6 +858,5 @@
     }
   });
 </script>
-
 </body>
 </html>
