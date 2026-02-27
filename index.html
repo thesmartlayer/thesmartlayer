@@ -803,60 +803,67 @@
     </script>
 
 <script type="module">
-  // --- 1. RETELL AI LOGIC ---
-  // Import the exact Web Client module safely
-  import { RetellWebClient } from "https://esm.run/retell-client-js-sdk";
+  // --- 1. UI LOGIC (Isolated so it always works) ---
+  const modal = document.getElementById('contact-modal');
+  const closeBtn = document.getElementById('contact-modal-close');
 
-  // Initialize using the CORRECT name
-  const retellWebClient = new RetellWebClient();
-
-  async function startRetellCall() {
-    try {
-      const response = await fetch("/.netlify/functions/start-call");
-      const data = await response.json();
-      
-      await retellWebClient.startCall({
-        accessToken: data.accessToken,
-      });
-      console.log("Retell Call Started");
-    } catch (error) {
-      console.error("Retell failed to start:", error);
-    }
-  }
-
-  // Handle the "Call AI Agent" buttons
-  document.addEventListener("click", function(e) {
-    if (e.target.closest('.vapi-call-btn')) {
-      e.preventDefault();
-      document.getElementById('contact-modal').style.display = 'none'; // Closes modal so you can browse while talking
-      startRetellCall();
-    }
-  });
-
-  // --- 2. MODAL & UI LOGIC ---
-  // Opens the "How to Connect" modal
+  // Open the modal
   document.querySelectorAll('.contact-trigger').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      document.getElementById('contact-modal').style.display = 'flex';
+      modal.style.display = 'flex';
     });
   });
 
-  // Closes the modal with the 'X'
-  const closeBtn = document.getElementById('contact-modal-close');
+  // Close the modal via 'X'
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
-      document.getElementById('contact-modal').style.display = 'none';
+      modal.style.display = 'none';
     });
   }
 
-  // Closes modal if clicking the dark background
+  // Close the modal by clicking the background
   window.addEventListener('click', (e) => {
-    const modal = document.getElementById('contact-modal');
     if (e.target === modal) {
       modal.style.display = 'none';
     }
   });
+
+  // Handle "Chat with AI" (Scrolls to demo section)
+  const chatBtn = document.getElementById('contact-chat');
+  if (chatBtn) {
+    chatBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+      document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  // --- 2. AI LOGIC (Wrapped in try-catch to prevent UI crashes) ---
+  try {
+    const { RetellWebClient } = await import("https://esm.run/retell-client-js-sdk");
+    const retellWebClient = new RetellWebClient();
+
+    async function startRetellCall() {
+      try {
+        const response = await fetch("/.netlify/functions/start-call");
+        const data = await response.json();
+        await retellWebClient.startCall({ accessToken: data.accessToken });
+      } catch (err) {
+        console.error("Call failed:", err);
+      }
+    }
+
+    document.addEventListener("click", (e) => {
+      if (e.target.closest('.vapi-call-btn')) {
+        e.preventDefault();
+        modal.style.display = 'none';
+        startRetellCall();
+      }
+    });
+  } catch (error) {
+    console.error("AI SDK load failed, but buttons still work.", error);
+  }
 </script>
+
 </body>
 </html>
