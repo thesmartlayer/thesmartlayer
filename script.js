@@ -440,12 +440,14 @@ if (contactChatBtn) {
     });
 }
 
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.vapi-call-btn')) {
-            e.preventDefault();
-            contactModal.classList.remove('active');
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.vapi-call-btn')) {
+        e.preventDefault();
+        contactModal.classList.remove('active');
+        if (!window._retellClient) {
             window.location.href = 'tel:+18554042424';
         }
-    });
-}
+    }
+});
+
 
