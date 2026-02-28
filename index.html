@@ -807,76 +807,41 @@
 
 
 <script>
-  // --- 1. UI LOGIC (Always works) ---
-  const modal = document.getElementById('contact-modal');
-  const closeBtn = document.getElementById('contact-modal-close');
+  // --- MODAL UI LOGIC (zero dependencies) ---
+  var modal = document.getElementById('contact-modal');
+  var closeBtn = document.getElementById('contact-modal-close');
 
-  document.querySelectorAll('.contact-trigger').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+  document.querySelectorAll('.contact-trigger').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
       e.preventDefault();
       modal.style.display = 'flex';
     });
   });
 
   if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
+    closeBtn.addEventListener('click', function() {
       modal.style.display = 'none';
     });
   }
 
-  window.addEventListener('click', (e) => {
+  window.addEventListener('click', function(e) {
     if (e.target === modal) {
       modal.style.display = 'none';
     }
   });
 
-  const chatBtn = document.getElementById('contact-chat');
-  if (chatBtn) {
-    chatBtn.addEventListener('click', () => {
-      modal.style.display = 'none';
-      document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
-    });
-  }
+  document.getElementById('contact-chat').addEventListener('click', function() {
+    modal.style.display = 'none';
+    document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+  });
 
-  // --- 2. RETELL AI (Loaded dynamically, won't crash UI) ---
-  var retellClient = null;
-
-  function loadRetellSDK() {
-    var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/index.js';
-    s.onload = function() {
-      try {
-        retellClient = new window.RetellWebClient();
-      } catch(e) {
-        console.error('Retell init failed:', e);
-      }
-    };
-    s.onerror = function() {
-      console.error('Retell SDK failed to load');
-    };
-    document.head.appendChild(s);
-  }
-  loadRetellSDK();
-
+  // --- CALL BUTTON: Simple tel: link fallback for now ---
   document.addEventListener('click', function(e) {
     if (e.target.closest('.vapi-call-btn')) {
       e.preventDefault();
       modal.style.display = 'none';
-      if (retellClient) {
-        fetch('/.netlify/functions/start-call')
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            retellClient.startCall({ accessToken: data.accessToken });
-          })
-          .catch(function(err) {
-            console.error('Call failed:', err);
-            window.location.href = 'tel:+18554042424';
-          });
-      } else {
-        window.location.href = 'tel:+18554042424';
-      }
+      window.location.href = 'tel:+18554042424';
     }
   });
-</script>
-</body>
+</script></body>
 </html>
