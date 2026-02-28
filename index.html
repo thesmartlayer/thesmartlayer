@@ -806,12 +806,11 @@
 <script src="smartlayer-chatbot.js"></script>
 
 
-<script type="module">
-  // --- 1. UI LOGIC (Isolated so it always works) ---
+<script>
+  // --- 1. UI LOGIC (Always works) ---
   const modal = document.getElementById('contact-modal');
   const closeBtn = document.getElementById('contact-modal-close');
 
-  // Open the modal
   document.querySelectorAll('.contact-trigger').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -819,21 +818,18 @@
     });
   });
 
-  // Close the modal via 'X'
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
       modal.style.display = 'none';
     });
   }
 
-  // Close the modal by clicking the background
   window.addEventListener('click', (e) => {
     if (e.target === modal) {
       modal.style.display = 'none';
     }
   });
 
-  // Handle "Chat with AI" (Scrolls to demo section)
   const chatBtn = document.getElementById('contact-chat');
   if (chatBtn) {
     chatBtn.addEventListener('click', () => {
@@ -842,32 +838,45 @@
     });
   }
 
-  // --- 2. AI LOGIC (Wrapped in try-catch to prevent UI crashes) ---
-  try {
-    const { RetellWebClient } = await import("https://esm.run/retell-client-js-sdk");
-    const retellWebClient = new RetellWebClient();
+  // --- 2. RETELL AI (Loaded dynamically, won't crash UI) ---
+  var retellClient = null;
 
-    async function startRetellCall() {
+  function loadRetellSDK() {
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/index.js';
+    s.onload = function() {
       try {
-        const response = await fetch("/.netlify/functions/start-call");
-        const data = await response.json();
-        await retellWebClient.startCall({ accessToken: data.accessToken });
-      } catch (err) {
-        console.error("Call failed:", err);
+        retellClient = new window.RetellWebClient();
+      } catch(e) {
+        console.error('Retell init failed:', e);
+      }
+    };
+    s.onerror = function() {
+      console.error('Retell SDK failed to load');
+    };
+    document.head.appendChild(s);
+  }
+  loadRetellSDK();
+
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.vapi-call-btn')) {
+      e.preventDefault();
+      modal.style.display = 'none';
+      if (retellClient) {
+        fetch('/.netlify/functions/start-call')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            retellClient.startCall({ accessToken: data.accessToken });
+          })
+          .catch(function(err) {
+            console.error('Call failed:', err);
+            window.location.href = 'tel:+18554042424';
+          });
+      } else {
+        window.location.href = 'tel:+18554042424';
       }
     }
-
-    document.addEventListener("click", (e) => {
-      if (e.target.closest('.vapi-call-btn')) {
-        e.preventDefault();
-        modal.style.display = 'none';
-        startRetellCall();
-      }
-    });
-  } catch (error) {
-    console.error("AI SDK load failed, but buttons still work.", error);
-  }
+  });
 </script>
-
 </body>
 </html>
