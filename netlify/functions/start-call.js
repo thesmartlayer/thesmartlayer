@@ -7,7 +7,7 @@ exports.handler = async (event) => {
       "Authorization": `Bearer ${process.env.RETELL_API_KEY}`, // Safely pulls from Netlify vault
     },
     body: JSON.stringify({
-      agent_id: "YOUR_AGENT_ID", // Paste your Agent ID here
+      agent_id: "agent_8f46294464def2baed3167671d", // Paste your Agent ID here
     }),
   });
 
@@ -16,4 +16,5 @@ exports.handler = async (event) => {
     statusCode: 200,
     body: JSON.stringify({ accessToken: data.access_token }),
   };
+
 };
