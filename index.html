@@ -805,43 +805,48 @@
 <script src="script.js"></script>
 <script src="smartlayer-chatbot.js"></script>
 
+// ==========================================
+// CONTACT MODAL
+// ==========================================
+var contactModal = document.getElementById('contact-modal');
+var contactModalClose = document.getElementById('contact-modal-close');
+var contactChatBtn = document.getElementById('contact-chat');
 
-<script>
-  // --- MODAL UI LOGIC (zero dependencies) ---
-  var modal = document.getElementById('contact-modal');
-  var closeBtn = document.getElementById('contact-modal-close');
-
-  document.querySelectorAll('.contact-trigger').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      modal.style.display = 'flex';
+if (contactModal) {
+    document.querySelectorAll('.contact-trigger').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            contactModal.classList.add('active');
+        });
     });
-  });
 
-  if (closeBtn) {
-    closeBtn.addEventListener('click', function() {
-      modal.style.display = 'none';
+    if (contactModalClose) {
+        contactModalClose.addEventListener('click', function() {
+            contactModal.classList.remove('active');
+        });
+    }
+
+    contactModal.addEventListener('click', function(e) {
+        if (e.target === contactModal) {
+            contactModal.classList.remove('active');
+        }
     });
-  }
 
-  window.addEventListener('click', function(e) {
-    if (e.target === modal) {
-      modal.style.display = 'none';
+    if (contactChatBtn) {
+        contactChatBtn.addEventListener('click', function() {
+            contactModal.classList.remove('active');
+            document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+        });
     }
-  });
 
-  document.getElementById('contact-chat').addEventListener('click', function() {
-    modal.style.display = 'none';
-    document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
-  });
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.vapi-call-btn')) {
+            e.preventDefault();
+            contactModal.classList.remove('active');
+            window.location.href = 'tel:+18554042424';
+        }
+    });
+}
 
-  // --- CALL BUTTON: Simple tel: link fallback for now ---
-  document.addEventListener('click', function(e) {
-    if (e.target.closest('.vapi-call-btn')) {
-      e.preventDefault();
-      modal.style.display = 'none';
-      window.location.href = 'tel:+18554042424';
-    }
-  });
-</script></body>
+</body>
 </html>
