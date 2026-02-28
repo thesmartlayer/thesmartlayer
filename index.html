@@ -805,6 +805,29 @@
 <script src="script.js"></script>
 <script src="smartlayer-chatbot.js"></script>
 
+<script type="module">
+  try {
+    const { RetellWebClient } = await import("https://esm.run/retell-client-js-sdk");
+    const retellWebClient = new RetellWebClient();
+    window._retellClient = retellWebClient;
 
+    document.addEventListener("click", function(e) {
+      if (e.target.closest('.vapi-call-btn')) {
+        e.preventDefault();
+        var modal = document.getElementById('contact-modal');
+        if (modal) modal.classList.remove('active');
+        fetch('/.netlify/functions/start-call')
+          .then(r => r.json())
+          .then(data => retellWebClient.startCall({ accessToken: data.accessToken }))
+          .catch(err => {
+            console.error('Call failed:', err);
+            window.location.href = 'tel:+18554042424';
+          });
+      }
+    });
+  } catch(e) {
+    console.error("Retell SDK unavailable:", e);
+  }
+</script>
 </body>
 </html>
