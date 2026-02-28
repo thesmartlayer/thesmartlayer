@@ -404,3 +404,46 @@ if (ownerBtn && customerBtn) {
         alert('This changes the demo to the Customer-facing Website view.');
     });
 }
+
+// ==========================================
+// CONTACT MODAL
+// ==========================================
+var contactModal = document.getElementById('contact-modal');
+var contactModalClose = document.getElementById('contact-modal-close');
+var contactChatBtn = document.getElementById('contact-chat');
+
+if (contactModal) {
+    document.querySelectorAll('.contact-trigger').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            contactModal.classList.add('active');
+        });
+    });
+
+    if (contactModalClose) {
+        contactModalClose.addEventListener('click', function() {
+            contactModal.classList.remove('active');
+        });
+    }
+
+    contactModal.addEventListener('click', function(e) {
+        if (e.target === contactModal) {
+            contactModal.classList.remove('active');
+        }
+    });
+
+    if (contactChatBtn) {
+        contactChatBtn.addEventListener('click', function() {
+            contactModal.classList.remove('active');
+            document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.vapi-call-btn')) {
+            e.preventDefault();
+            contactModal.classList.remove('active');
+            window.location.href = 'tel:+18554042424';
+        }
+    });
+}
