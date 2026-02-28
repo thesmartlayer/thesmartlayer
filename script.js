@@ -432,12 +432,13 @@ if (contactModal) {
         }
     });
 
-    if (contactChatBtn) {
-        contactChatBtn.addEventListener('click', function() {
-            contactModal.classList.remove('active');
-            document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
-        });
-    }
+if (contactChatBtn) {
+    contactChatBtn.addEventListener('click', function() {
+        contactModal.classList.remove('active');
+        var chatBtn = document.getElementById('smartlayer-chat-btn');
+        if (chatBtn) chatBtn.click();
+    });
+}
 
     document.addEventListener('click', function(e) {
         if (e.target.closest('.vapi-call-btn')) {
@@ -447,3 +448,4 @@ if (contactModal) {
         }
     });
 }
+
