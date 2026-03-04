@@ -14,7 +14,7 @@ const BOOKING_TOOL = {
             name: { type: "string", description: "Client's full name" },
             phone: { type: "string", description: "Client's phone number (optional)" },
             email: { type: "string", description: "Client's email address (optional)" },
-            date: { type: "string", description: "Appointment date and time in ISO 8601 format (e.g. 2026-03-05T14:00:00). Use Atlantic Time (America/Moncton)." },
+            date: { type: "string", description: "Appointment date and time in ISO 8601 format with Atlantic Time offset. ALWAYS use -04:00 offset. Example: 2026-03-05T14:00:00-04:00 for 2pm Atlantic Time." },
             type: { type: "string", enum: ["Consultation", "Demo", "Follow-up"], description: "Type of appointment. Default to Consultation for new prospects, Demo if they want to see the platform." },
             duration: { type: "number", description: "Duration in minutes. Default 30 for consultations, 45 for demos." },
             notes: { type: "string", description: "Any relevant notes about what the client needs or their business type" }
@@ -135,9 +135,15 @@ async function createAppointment(input) {
     const airtableKey = process.env.AIRTABLE_API_KEY;
     if (!airtableKey) throw new Error('No Airtable key');
 
+    // Ensure Atlantic Time offset is included
+    let dateStr = input.date;
+    if (dateStr && !dateStr.match(/[Zz]$/) && !dateStr.match(/[+-]\d{2}:\d{2}$/)) {
+        dateStr = dateStr + '-04:00'; // Atlantic Standard Time
+    }
+
     const fields = {
         Name: input.name,
-        Date: input.date,
+        Date: dateStr,
         Type: input.type || 'Consultation',
         Duration: input.duration || (input.type === 'Demo' ? 45 : 30),
         Status: 'Scheduled',
@@ -194,7 +200,7 @@ async function saveTranscript(bookingId, messages, source) {
             created_at: new Date().toISOString()
         };
 
-        await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts`, {
+        const resp = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${airtableKey}`,
@@ -202,6 +208,10 @@ async function saveTranscript(bookingId, messages, source) {
             },
             body: JSON.stringify({ records: [{ fields }] })
         });
+        if (!resp.ok) {
+            const errText = await resp.text();
+            console.error('Transcript Airtable error:', errText);
+        }
     } catch (e) {
         console.error('Transcript save error:', e);
     }
