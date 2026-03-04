@@ -1,73 +1,650 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Layer | Garage Dashboard</title>
-    <link rel="stylesheet" href="dashboard-styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>The Smart Layer - CEO Mission Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+                colors: { ceo: {
+                    bg:'#0a0c10', surface:'#0f1117', card:'#161922', cardHover:'#1c2030',
+                    border:'#1e2235', borderLight:'#2a2f45', text:'#e2e8f0', textMuted:'#7a8299',
+                    green:'#22c55e', red:'#ef4444', yellow:'#eab308', blue:'#3b82f6', purple:'#a855f7', orange:'#f97316'
+                }}
+            }}
+        }
+    </script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Inter,system-ui,sans-serif;background:#0a0c10;color:#e2e8f0;overflow-x:hidden}
+        ::-webkit-scrollbar{width:6px;height:6px}
+        ::-webkit-scrollbar-track{background:#0f1117}
+        ::-webkit-scrollbar-thumb{background:#2a2f45;border-radius:3px}
+        .glass-card{background:rgba(22,25,34,0.7);backdrop-filter:blur(20px);border:1px solid rgba(30,34,53,0.6);border-radius:16px;transition:all .3s cubic-bezier(.4,0,.2,1)}
+        .glass-card:hover{border-color:rgba(42,47,69,0.9);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+        .pulse-green{animation:pulseG 2s infinite}
+        .pulse-yellow{animation:pulseY 2.5s infinite}
+        .pulse-red{animation:pulseR 1.5s infinite}
+        @keyframes pulseG{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}50%{box-shadow:0 0 0 6px rgba(34,197,94,0)}}
+        @keyframes pulseY{0%,100%{box-shadow:0 0 0 0 rgba(234,179,8,.5)}50%{box-shadow:0 0 0 6px rgba(234,179,8,0)}}
+        @keyframes pulseR{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}50%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+        .kpi-green{background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(34,197,94,.02));border:1px solid rgba(34,197,94,.2)}
+        .kpi-blue{background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(59,130,246,.02));border:1px solid rgba(59,130,246,.2)}
+        .kpi-purple{background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(168,85,247,.02));border:1px solid rgba(168,85,247,.2)}
+        /* FullCalendar */
+        .fc{--fc-border-color:#1e2235;--fc-button-bg-color:#161922;--fc-button-border-color:#2a2f45;--fc-button-text-color:#e2e8f0;--fc-button-hover-bg-color:#1c2030;--fc-button-hover-border-color:#3a3f55;--fc-button-active-bg-color:#22c55e;--fc-button-active-border-color:#22c55e;--fc-today-bg-color:rgba(34,197,94,.06);--fc-page-bg-color:transparent;--fc-neutral-bg-color:#0f1117;--fc-event-bg-color:#22c55e;--fc-event-border-color:#16a34a;--fc-event-text-color:#fff;--fc-now-indicator-color:#ef4444;font-family:Inter,sans-serif;font-size:12px}
+        .fc .fc-col-header-cell-cushion,.fc .fc-daygrid-day-number,.fc .fc-timegrid-slot-label-cushion{color:#7a8299;font-weight:500}
+        .fc .fc-timegrid-slot{height:40px}
+        .fc .fc-toolbar-title{font-size:1.1rem!important;font-weight:700;color:#e2e8f0}
+        .fc .fc-button{font-size:.75rem;border-radius:8px;padding:6px 14px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+        .fc .fc-button:focus{box-shadow:none}
+        .fc .fc-event{border-radius:6px;padding:2px 6px;font-size:.7rem;font-weight:600;border:none;cursor:pointer}
+        .fc .fc-scrollgrid{border:none}
+        .fc .fc-scrollgrid td,.fc .fc-scrollgrid th{border-color:#1e2235}
+        /* Nav */
+        .nav-active{background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(59,130,246,.05));border-left:2px solid #22c55e}
+        /* Toggle */
+        .toggle-track{width:44px;height:24px;background:#1e2235;border-radius:12px;position:relative;cursor:pointer;transition:background .3s}
+        .toggle-track.active{background:#a855f7}
+        .toggle-thumb{width:18px;height:18px;background:#e2e8f0;border-radius:50%;position:absolute;top:3px;left:3px;transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+        .toggle-track.active .toggle-thumb{transform:translateX(20px)}
+        /* Checkbox */
+        .ceo-checkbox{appearance:none;-webkit-appearance:none;width:18px;height:18px;border:2px solid #2a2f45;border-radius:4px;cursor:pointer;position:relative;flex-shrink:0;transition:all .2s}
+        .ceo-checkbox:checked{background:#22c55e;border-color:#22c55e}
+        .ceo-checkbox:checked::after{content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+        .animate-in{animation:slideUp .5s cubic-bezier(.16,1,.3,1) forwards;opacity:0}
+        @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        /* Collapsible sidebar */
+        .sidebar-collapsed{width:0!important;min-width:0!important;padding:0!important;overflow:hidden;border:none!important}
+        .sidebar-collapsed *{opacity:0;pointer-events:none}
+        .sidebar-toggle{position:fixed;z-index:60;width:32px;height:32px;border-radius:8px;background:rgba(22,25,34,.9);border:1px solid #2a2f45;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#7a8299;transition:all .2s}
+        .sidebar-toggle:hover{color:#e2e8f0;border-color:#3a3f55}
+        #leftToggle{top:80px;left:8px}
+        #leftToggle.shifted{left:268px}
+        /* Collapsible portfolio */
+        .portfolio-collapsed .portfolio-body{max-height:0;overflow:hidden;padding:0!important}
+        .portfolio-collapsed .portfolio-chevron{transform:rotate(180deg)}
+        .portfolio-body{transition:max-height .3s ease;max-height:2000px;overflow-y:auto}
+        .portfolio-chevron{transition:transform .3s ease}
+        /* Pipeline */
+        .pipeline-col-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:12px 12px 0 0;border-bottom:2px solid}
+        .pipeline-col-new .pipeline-col-header{background:rgba(59,130,246,.08);border-color:#3b82f6}
+        .pipeline-col-contacted .pipeline-col-header{background:rgba(234,179,8,.08);border-color:#eab308}
+        .pipeline-col-closed .pipeline-col-header{background:rgba(34,197,94,.08);border-color:#22c55e}
+        .lead-card{background:rgba(22,25,34,.9);border:1px solid rgba(30,34,53,.6);border-radius:12px;padding:14px;margin:8px 0;transition:all .2s}
+        .lead-card:hover{border-color:rgba(59,130,246,.3);box-shadow:0 4px 16px rgba(0,0,0,.3);transform:translateY(-1px)}
+        .status-btn{padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.05em}
+        .status-btn:hover{transform:translateY(-1px)}
+        .status-btn-contacted{background:rgba(234,179,8,.1);border-color:rgba(234,179,8,.3);color:#eab308}
+        .status-btn-closed{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#22c55e}
+        .status-btn-reopen{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3);color:#3b82f6}
+        .shimmer{background:linear-gradient(90deg,#161922 25%,#1c2030 50%,#161922 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        /* AI Terminal */
+        .ai-terminal{background:#0a0c10;border:1px solid #1e2235;border-radius:10px;font-family:JetBrains Mono,monospace;font-size:.75rem;line-height:1.6;color:#22c55e;overflow-y:auto;max-height:180px}
+        .cursor-blink{display:inline-block;width:7px;height:14px;background:#22c55e;animation:blink 1s step-end infinite;vertical-align:middle;margin-left:2px}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+        /* Toast */
+        .toast{position:fixed;top:80px;right:24px;z-index:200;background:rgba(22,25,34,.95);border:1px solid rgba(34,197,94,.4);border-radius:12px;padding:16px 20px;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateX(120%);transition:transform .4s cubic-bezier(.16,1,.3,1);max-width:320px}
+        .toast.show{transform:translateX(0)}
+        /* Event popup */
+        .event-popup{position:fixed;z-index:150;background:rgba(22,25,34,.98);border:1px solid #2a2f45;border-radius:14px;padding:20px;box-shadow:0 12px 48px rgba(0,0,0,.6);min-width:280px;max-width:360px}
+        .event-popup-overlay{position:fixed;inset:0;z-index:140;background:rgba(0,0,0,.3)}
+        /* Deep Work */
+        .deep-work-overlay{position:absolute;inset:0;background:rgba(10,12,16,.65);backdrop-filter:blur(2px);z-index:10;display:flex;align-items:center;justify-content:center;border-radius:16px;opacity:0;visibility:hidden;transition:opacity .4s,visibility .4s}
+        .deep-work-overlay.active{opacity:1;visibility:visible}
+        /* Modal form */
+        .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center}
+        .modal-overlay.active{display:flex}
+        .modal-box{background:#161922;border:1px solid #2a2f45;border-radius:16px;padding:24px;width:400px;max-width:90vw}
+        .modal-box label{display:block;font-size:11px;font-weight:700;color:#7a8299;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;margin-top:12px}
+        .modal-box input,.modal-box select,.modal-box textarea{width:100%;padding:10px 12px;background:#0f1117;border:1px solid #2a2f45;border-radius:8px;color:#e2e8f0;font-size:13px;font-family:Inter,sans-serif}
+        .modal-box input:focus,.modal-box select:focus,.modal-box textarea:focus{outline:none;border-color:#22c55e}
+        .modal-box select option{background:#0f1117}
+        @media(max-width:1024px){.desktop-sidebar{display:none!important}.main-grid{grid-template-columns:1fr!important}.right-panel{order:-1}.pipeline-board{flex-direction:column!important}#leftToggle{display:none!important}}
+    </style>
 </head>
-<body>
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <div class="sidebar-header"><h1>The Smart Layer</h1></div>
-            <nav class="sidebar-nav">
-                <button class="nav-item active" data-tab="work-log"><span>Service Logs</span></button>
-                <button class="nav-item" id="logout-btn" style="margin-top:auto;"><span>Logout</span></button>
-            </nav>
-        </aside>
+<body class="min-h-screen">
+<script>
+var masterState = {
+    ceo: { name: "John", title: "CEO & Founder", company: "The Smart Layer" },
+    leads: [],
+    appointments: [],
+    previousLeadCount: 0,
+    ceoTasks: [
+        { id:1, text:"Finalize Q1 pricing model for Enterprise tier", done:false },
+        { id:2, text:"Review new RAG pipeline architecture", done:false },
+        { id:3, text:"Record CEO weekly update video", done:false }
+    ],
+    aiModels: [
+        { id:"gpt4o", name:"GPT-4o", badge:"OpenAI" },
+        { id:"claude35", name:"Claude 3.5 Sonnet", badge:"Anthropic" },
+        { id:"smartlayer", name:"The Smart Layer", badge:"Custom RAG" }
+    ],
+    deepWorkActive: false,
+    leftOpen: true,
+    portfolioOpen: true
+};
 
-        <main class="main-content">
-            <section id="work-log" class="tab-content active">
-                <h2>Incoming Service Logs</h2>
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Date/Time</th>
-                                <th>Customer & Vehicle</th>
-                                <th>AI Summary</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="clickable-row" onclick="openModal('mike-ross')">
-                                <td>Feb 03, 10:45 AM</td>
-                                <td><strong>Mike Ross</strong><br><span class="subtext">2019 RAM 1500</span></td>
-                                <td><span class="status-badge warning">Transmission Slip</span></td>
-                                <td><button class="btn-secondary">View Transcript</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
+var typeColors = { Consultation:'#22c55e', 'Follow-up':'#3b82f6', Onboarding:'#a855f7', Demo:'#f97316' };
+
+function formatCurrency(n){return '$'+n.toLocaleString('en-US')}
+function getGreeting(){var h=new Date().getHours();return h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening'}
+function getDate(){return new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
+function timeAgo(d){if(!d)return '';var now=new Date(),then=new Date(d),diff=Math.floor((now-then)/1000);if(diff<60)return 'just now';if(diff<3600)return Math.floor(diff/60)+'m ago';if(diff<86400)return Math.floor(diff/3600)+'h ago';return Math.floor(diff/86400)+'d ago'}
+function escapeHtml(t){if(!t)return '';var d=document.createElement('div');d.textContent=t;return d.innerHTML}
+</script>
+
+<!-- Left sidebar toggle -->
+<button class="sidebar-toggle shifted" id="leftToggle" onclick="toggleLeftSidebar()">
+    <i data-lucide="panel-left-close" class="w-4 h-4" id="leftToggleIcon"></i>
+</button>
+
+<div class="flex min-h-screen">
+    <aside class="desktop-sidebar w-[280px] min-w-[280px] bg-ceo-surface border-r border-ceo-border flex flex-col h-screen sticky top-0 overflow-y-auto transition-all duration-300" id="leftSidebar">
+        <div class="px-5 py-5 border-b border-ceo-border">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-ceo-green to-emerald-700 flex items-center justify-center">
+                    <i data-lucide="layers" class="w-5 h-5 text-white"></i>
                 </div>
-            </section>
-        </main>
-    </div>
-
-    <div id="details-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
-        <div class="modal-content" style="background:#1a1a1a; padding:30px; border-radius:12px; max-width:500px; width:90%; border:1px solid #333;">
-            <header style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h3>Customer History</h3>
-                <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">&times;</button>
-            </header>
-            <div id="modal-body">
-                <p><strong>AI Transcript:</strong></p>
-                <div id="transcript-content" style="background:#000; padding:15px; border-radius:8px; font-family:monospace; margin-bottom:20px; line-height:1.5;"></div>
-                <textarea placeholder="Add your manual diagnosis notes..." style="width:100%; background:#333; color:white; border:none; padding:10px; border-radius:8px; height:80px;"></textarea>
-                <button class="btn-primary" style="width:100%; margin-top:15px;">Save Log</button>
+                <div>
+                    <div class="font-bold text-sm text-ceo-text tracking-tight">The Smart Layer</div>
+                    <div class="text-[10px] text-ceo-textMuted font-semibold uppercase tracking-widest">CEO Mission Control</div>
+                </div>
             </div>
         </div>
-    </div>
+        <nav class="px-3 py-4 space-y-1">
+            <a href="#" class="nav-active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-text"><i data-lucide="layout-dashboard" class="w-4 h-4 text-ceo-green"></i> Dashboard</a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="users" class="w-4 h-4"></i> Clients</a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="bot" class="w-4 h-4"></i> AI Agents</a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="settings" class="w-4 h-4"></i> Settings</a>
+        </nav>
+        <div class="px-5 py-2"><div class="border-t border-ceo-border"></div></div>
+        <div class="px-4 space-y-3 flex-1">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-ceo-textMuted px-1 mb-2">Pipeline Stats</p>
+            <div class="glass-card kpi-green p-4 animate-in" style="animation-delay:0.1s">
+                <div class="flex items-center justify-between mb-2"><span class="text-[10px] uppercase tracking-widest font-bold text-ceo-textMuted">Total Leads</span><i data-lucide="trending-up" class="w-4 h-4 text-ceo-green"></i></div>
+                <div class="text-2xl font-black text-ceo-green" id="kpiLeads">0</div>
+                <div class="text-[10px] text-ceo-textMuted mt-1">captured via Retell AI</div>
+            </div>
+            <div class="glass-card kpi-blue p-4 animate-in" style="animation-delay:0.2s">
+                <div class="flex items-center justify-between mb-2"><span class="text-[10px] uppercase tracking-widest font-bold text-ceo-textMuted">Appointments</span><i data-lucide="calendar-check" class="w-4 h-4 text-ceo-blue"></i></div>
+                <div class="text-2xl font-black text-ceo-blue" id="kpiAppointments">0</div>
+                <div class="text-[10px] text-ceo-textMuted mt-1">scheduled consultations</div>
+            </div>
+            <div class="glass-card kpi-purple p-4 animate-in" style="animation-delay:0.3s">
+                <div class="flex items-center justify-between mb-2"><span class="text-[10px] uppercase tracking-widest font-bold text-ceo-textMuted">Conversion</span><i data-lucide="target" class="w-4 h-4 text-ceo-purple"></i></div>
+                <div class="text-2xl font-black text-ceo-purple" id="kpiConversion">0%</div>
+                <div class="text-[10px] text-ceo-textMuted mt-1">leads to appointments</div>
+            </div>
+        </div>
+        <!-- LifeOS -->
+        <div class="px-4 py-4 mt-2">
+            <div class="glass-card p-4 animate-in" style="animation-delay:0.4s">
+                <div class="flex items-center gap-2 mb-3"><i data-lucide="flame" class="w-4 h-4 text-orange-400"></i><span class="text-xs font-bold uppercase tracking-widest text-ceo-textMuted">LifeOS</span></div>
+                <p class="text-[9px] font-bold uppercase tracking-widest text-ceo-textMuted mb-2">Today's CEO Priorities</p>
+                <div class="space-y-2" id="ceoTasksList"></div>
+            </div>
+        </div>
+        <div class="px-4 py-4 border-t border-ceo-border mt-auto">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-ceo-green to-ceo-blue flex items-center justify-center text-xs font-bold text-white">J</div>
+                <div><div class="text-xs font-semibold text-ceo-text" id="ceoName"></div><div class="text-[10px] text-ceo-textMuted" id="ceoTitle"></div></div>
+                <a href="/" class="ml-auto"><i data-lucide="log-out" class="w-4 h-4 text-ceo-textMuted hover:text-ceo-red transition-colors"></i></a>
+            </div>
+        </div>
+    </aside>
 
-    <script>
-        function openModal(id) {
-            document.getElementById('details-modal').style.display = 'flex';
-            document.getElementById('transcript-content').innerHTML = 
-            "<span style='color:#f59e0b;'>AI:</span> How can I help?<br><span style='color:#3b82f6;'>Mike:</span> My Dodge is clunking in reverse.<br><span style='color:#f59e0b;'>AI:</span> I'll log that for the mechanic.";
+    <div class="flex-1 flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="h-16 border-b border-ceo-border bg-ceo-surface/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-50">
+            <div><h1 class="text-lg font-bold text-ceo-text" id="greetingText"></h1><p class="text-xs text-ceo-textMuted" id="dateText"></p></div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2"><i data-lucide="brain" class="w-4 h-4 text-ceo-purple"></i><span class="text-xs font-semibold text-ceo-textMuted">Deep Work</span><div class="toggle-track" id="deepWorkToggle" onclick="toggleDeepWork()"><div class="toggle-thumb"></div></div></div>
+                <div class="w-px h-6 bg-ceo-border"></div>
+                <button class="relative p-2 rounded-lg hover:bg-ceo-card transition-colors"><i data-lucide="bell" class="w-5 h-5 text-ceo-textMuted"></i><span class="absolute top-1.5 right-1.5 w-2 h-2 bg-ceo-red rounded-full" id="notifDot" style="display:none"></span></button>
+                <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-ceo-card border border-ceo-border text-xs text-ceo-textMuted hover:border-ceo-borderLight transition-colors" onclick="refreshAll()"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Refresh</span></button>
+            </div>
+        </header>
+
+        <div class="flex-1 grid gap-0 main-grid" style="grid-template-columns:1fr 340px;">
+            <main class="p-6 overflow-y-auto space-y-6">
+
+                <!-- LEADS PIPELINE -->
+                <div class="glass-card p-5 animate-in" style="animation-delay:0.1s">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-ceo-blue/10 flex items-center justify-center"><i data-lucide="filter" class="w-4 h-4 text-ceo-blue"></i></div>
+                            <div><h2 class="text-sm font-bold text-ceo-text">Leads Pipeline</h2><p class="text-[10px] text-ceo-textMuted">Live from Airtable &mdash; powered by Retell AI</p></div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-ceo-green/10 text-[10px] font-bold text-ceo-green"><span class="w-1.5 h-1.5 rounded-full bg-ceo-green"></span> LIVE</span>
+                            <span class="text-[10px] text-ceo-textMuted" id="lastRefreshed"></span>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 pipeline-board" id="pipelineBoard">
+                        <div class="flex-1 min-w-0 pipeline-col-new">
+                            <div class="pipeline-col-header"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-ceo-blue"></span><span class="text-xs font-bold text-ceo-blue">New</span></div><span class="text-[10px] font-bold text-ceo-textMuted bg-ceo-card px-2 py-0.5 rounded-md" id="countNew">0</span></div>
+                            <div class="p-2 min-h-[100px]" id="colNew"><div class="shimmer h-16 mb-2"></div><div class="shimmer h-16"></div></div>
+                        </div>
+                        <div class="flex-1 min-w-0 pipeline-col-contacted">
+                            <div class="pipeline-col-header"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-ceo-yellow"></span><span class="text-xs font-bold text-ceo-yellow">Contacted</span></div><span class="text-[10px] font-bold text-ceo-textMuted bg-ceo-card px-2 py-0.5 rounded-md" id="countContacted">0</span></div>
+                            <div class="p-2 min-h-[100px]" id="colContacted"></div>
+                        </div>
+                        <div class="flex-1 min-w-0 pipeline-col-closed">
+                            <div class="pipeline-col-header"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-ceo-green"></span><span class="text-xs font-bold text-ceo-green">Closed</span></div><span class="text-[10px] font-bold text-ceo-textMuted bg-ceo-card px-2 py-0.5 rounded-md" id="countClosed">0</span></div>
+                            <div class="p-2 min-h-[100px]" id="colClosed"></div>
+                        </div>
+                    </div>
+                    <div id="pipelineEmpty" class="hidden text-center py-8"><p class="text-sm text-ceo-textMuted">No leads yet. When Retell captures a call, it appears here.</p></div>
+                </div>
+
+                <!-- CALENDAR -->
+                <div class="glass-card p-5 animate-in relative" style="animation-delay:0.2s" id="calendarContainer">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-ceo-green/10 flex items-center justify-center"><i data-lucide="calendar-days" class="w-4 h-4 text-ceo-green"></i></div>
+                            <div><h2 class="text-sm font-bold text-ceo-text">Appointments Calendar</h2><p class="text-[10px] text-ceo-textMuted">Click to add &bull; drag to reschedule &bull; click event for details</p></div>
+                        </div>
+                        <!-- Color legend -->
+                        <div class="flex items-center gap-3">
+                            <span class="flex items-center gap-1 text-[9px] text-ceo-textMuted"><span class="w-2 h-2 rounded-full" style="background:#22c55e"></span>Consult</span>
+                            <span class="flex items-center gap-1 text-[9px] text-ceo-textMuted"><span class="w-2 h-2 rounded-full" style="background:#3b82f6"></span>Follow-up</span>
+                            <span class="flex items-center gap-1 text-[9px] text-ceo-textMuted"><span class="w-2 h-2 rounded-full" style="background:#a855f7"></span>Onboard</span>
+                            <span class="flex items-center gap-1 text-[9px] text-ceo-textMuted"><span class="w-2 h-2 rounded-full" style="background:#f97316"></span>Demo</span>
+                        </div>
+                    </div>
+                    <div id="fullCalendar"></div>
+                    <div class="deep-work-overlay" id="deepWorkOverlay">
+                        <div class="text-center">
+                            <div class="w-16 h-16 rounded-2xl bg-ceo-purple/20 border border-ceo-purple/30 flex items-center justify-center mx-auto mb-4"><i data-lucide="brain" class="w-8 h-8 text-ceo-purple"></i></div>
+                            <h3 class="text-lg font-bold text-ceo-text mb-1">Deep Work Mode</h3>
+                            <button onclick="toggleDeepWork()" class="mt-4 px-4 py-2 rounded-lg bg-ceo-purple/20 border border-ceo-purple/30 text-ceo-purple text-xs font-bold hover:bg-ceo-purple/30 transition-all">Exit Deep Work</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- RIGHT PANEL -->
+            <aside class="right-panel border-l border-ceo-border bg-ceo-surface/50 flex flex-col h-[calc(100vh-64px)] sticky top-16 overflow-hidden">
+                <!-- Collapsible Portfolio -->
+                <div id="portfolioSection">
+                    <div class="px-5 py-4 border-b border-ceo-border cursor-pointer select-none" onclick="togglePortfolio()">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2"><i data-lucide="folder-kanban" class="w-4 h-4 text-ceo-green"></i><h2 class="text-sm font-bold text-ceo-text">Client Portfolio</h2></div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold text-ceo-textMuted bg-ceo-card px-2 py-1 rounded-md" id="clientCount">0</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-ceo-textMuted portfolio-chevron" id="portfolioChevron"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="portfolio-body px-4 py-3 space-y-2" id="clientList">
+                        <p class="text-[10px] text-ceo-textMuted text-center py-4">Client metrics coming soon.<br>Connect your client Airtable base to see real data.</p>
+                    </div>
+                </div>
+
+                <!-- AI Command Bar -->
+                <div class="border-t border-ceo-border p-4 bg-ceo-surface/80 backdrop-filter:blur(20px) mt-auto">
+                    <div class="flex items-center gap-2 mb-3"><i data-lucide="sparkles" class="w-4 h-4 text-ceo-green"></i><span class="text-xs font-bold text-ceo-text">CEO AI Command Bar</span></div>
+                    <div class="flex items-center gap-2 mb-3"><select id="aiModelSelect" class="flex-1 bg-ceo-card border border-ceo-border rounded-lg px-3 py-2 text-xs text-ceo-text font-medium focus:outline-none focus:border-ceo-green cursor-pointer"></select></div>
+                    <div class="ai-terminal p-3 mb-3 hidden" id="aiTerminal"><div id="aiTerminalContent"></div></div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="aiInput" placeholder="Ask your AI anything..." class="flex-1 bg-ceo-card border border-ceo-border rounded-lg px-4 py-2.5 text-xs text-ceo-text placeholder-ceo-textMuted focus:outline-none focus:border-ceo-green font-medium" onkeydown="if(event.key==='Enter')executeAICommand()">
+                        <button onclick="executeAICommand()" class="p-2.5 rounded-lg bg-ceo-green/10 border border-ceo-green/20 text-ceo-green hover:bg-ceo-green/20 transition-all"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-ceo-green/20 flex items-center justify-center flex-shrink-0"><i data-lucide="phone-incoming" class="w-4 h-4 text-ceo-green"></i></div><div><div class="text-xs font-bold text-ceo-text" id="toastTitle">New Lead</div><div class="text-[10px] text-ceo-textMuted" id="toastBody"></div></div></div></div>
+
+<!-- New appointment modal -->
+<div class="modal-overlay" id="apptModal">
+    <div class="modal-box">
+        <div class="flex items-center justify-between mb-2"><h3 class="text-sm font-bold text-ceo-text">New Appointment</h3><button onclick="closeApptModal()" class="text-ceo-textMuted hover:text-ceo-text">&times;</button></div>
+        <label>Name</label><input type="text" id="apptName" placeholder="Client name">
+        <label>Phone</label><input type="text" id="apptPhone" placeholder="506-555-0000">
+        <label>Email</label><input type="email" id="apptEmail" placeholder="email@example.com">
+        <label>Type</label>
+        <select id="apptType"><option>Consultation</option><option>Follow-up</option><option>Onboarding</option><option>Demo</option></select>
+        <label>Duration (minutes)</label><input type="number" id="apptDuration" value="30" min="15" step="15">
+        <label>Notes</label><textarea id="apptNotes" rows="2" placeholder="Optional notes..."></textarea>
+        <input type="hidden" id="apptStart">
+        <div class="flex gap-2 mt-4">
+            <button onclick="saveAppointment()" class="flex-1 py-2.5 rounded-lg bg-ceo-green text-white text-xs font-bold hover:bg-emerald-600 transition-colors">Save Appointment</button>
+            <button onclick="closeApptModal()" class="px-4 py-2.5 rounded-lg bg-ceo-card border border-ceo-border text-xs text-ceo-textMuted hover:text-ceo-text transition-colors">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Event detail popup -->
+<div class="event-popup-overlay" id="eventOverlay" style="display:none" onclick="closeEventPopup()"></div>
+<div class="event-popup" id="eventPopup" style="display:none">
+    <div id="eventPopupContent"></div>
+</div>
+<script>
+var calendarInstance=null,deepWorkEvents=[];
+
+document.addEventListener('DOMContentLoaded',function(){
+    lucide.createIcons();
+    renderCEOTasks();
+    renderAIModelSelector();
+    setGreeting();
+    loadLeads();
+    loadAppointments();
+});
+
+function setGreeting(){
+    document.getElementById('greetingText').textContent=getGreeting()+', '+masterState.ceo.name;
+    document.getElementById('dateText').textContent=getDate();
+    document.getElementById('ceoName').textContent=masterState.ceo.name;
+    document.getElementById('ceoTitle').textContent=masterState.ceo.title+' \u2022 '+masterState.ceo.company;
+}
+
+function refreshAll(){loadLeads();loadAppointments()}
+
+// ===== LEFT SIDEBAR TOGGLE =====
+function toggleLeftSidebar(){
+    var sb=document.getElementById('leftSidebar'),btn=document.getElementById('leftToggle');
+    masterState.leftOpen=!masterState.leftOpen;
+    if(masterState.leftOpen){sb.classList.remove('sidebar-collapsed');btn.classList.add('shifted')}
+    else{sb.classList.add('sidebar-collapsed');btn.classList.remove('shifted')}
+}
+
+// ===== PORTFOLIO TOGGLE =====
+function togglePortfolio(){
+    var sec=document.getElementById('portfolioSection');
+    masterState.portfolioOpen=!masterState.portfolioOpen;
+    if(masterState.portfolioOpen)sec.classList.remove('portfolio-collapsed');
+    else sec.classList.add('portfolio-collapsed');
+}
+
+// ===== LEADS =====
+async function loadLeads(){
+    try{
+        var r=await fetch('/.netlify/functions/get-leads');
+        var data=await r.json();
+        var newLeads=data.leads||[];
+        // Toast check
+        if(masterState.previousLeadCount>0&&newLeads.length>masterState.previousLeadCount){
+            var latest=newLeads[newLeads.length-1];
+            showToast('New Lead Captured!',escapeHtml(latest.name||latest.phone||'Unknown caller'));
         }
-        function closeModal() { document.getElementById('details-modal').style.display = 'none'; }
-        document.getElementById('logout-btn').addEventListener('click', () => { netlifyIdentity.logout(); });
-    </script>
+        masterState.previousLeadCount=newLeads.length;
+        masterState.leads=newLeads;
+        renderPipeline();
+        updateStats();
+        document.getElementById('lastRefreshed').textContent='Updated '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    }catch(e){
+        console.error('Failed to load leads:',e);
+        document.getElementById('colNew').innerHTML='<p class="text-xs text-ceo-red p-3">Failed to load leads</p>';
+    }
+}
+
+function renderPipeline(){
+    var leads=masterState.leads;
+    var nw=leads.filter(function(l){return !l.status||l.status==='New'});
+    var co=leads.filter(function(l){return l.status==='Contacted'});
+    var cl=leads.filter(function(l){return l.status==='Closed'});
+    document.getElementById('countNew').textContent=nw.length;
+    document.getElementById('countContacted').textContent=co.length;
+    document.getElementById('countClosed').textContent=cl.length;
+    var hasData=leads.length>0&&leads.some(function(l){return l.name||l.business||l.phone});
+    if(!hasData){document.getElementById('pipelineBoard').style.display='none';document.getElementById('pipelineEmpty').classList.remove('hidden');return}
+    document.getElementById('pipelineBoard').style.display='flex';document.getElementById('pipelineEmpty').classList.add('hidden');
+    document.getElementById('colNew').innerHTML=renderCards(nw,'new');
+    document.getElementById('colContacted').innerHTML=renderCards(co,'contacted');
+    document.getElementById('colClosed').innerHTML=renderCards(cl,'closed');
+    lucide.createIcons();
+}
+
+function renderCards(leads,col){
+    if(!leads.length)return '<div class="text-center py-4"><p class="text-[10px] text-ceo-textMuted">Empty</p></div>';
+    return leads.map(function(l){
+        var btns='';
+        if(col==='new')btns='<button class="status-btn status-btn-contacted" onclick="moveLead(\''+l.id+'\',\'Contacted\')">Contacted</button><button class="status-btn status-btn-closed" onclick="moveLead(\''+l.id+'\',\'Closed\')">Close</button>';
+        else if(col==='contacted')btns='<button class="status-btn status-btn-closed" onclick="moveLead(\''+l.id+'\',\'Closed\')">Close</button><button class="status-btn status-btn-reopen" onclick="moveLead(\''+l.id+'\',\'New\')">Reopen</button>';
+        else btns='<button class="status-btn status-btn-reopen" onclick="moveLead(\''+l.id+'\',\'New\')">Reopen</button>';
+        var src=l.source?'<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-ceo-purple/10 text-ceo-purple">'+escapeHtml(l.source)+'</span>':'';
+        return '<div class="lead-card"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-ceo-text">'+escapeHtml(l.name||'Unknown')+'</span>'+src+'</div>'+
+            (l.business?'<div class="text-[11px] text-ceo-textMuted mb-1">'+escapeHtml(l.business)+'</div>':'')+
+            (l.phone?'<div class="text-[11px] text-ceo-textMuted mb-1"><a href="tel:'+escapeHtml(l.phone)+'" class="hover:text-ceo-blue">'+escapeHtml(l.phone)+'</a></div>':'')+
+            (l.email?'<div class="text-[11px] text-ceo-textMuted mb-2"><a href="mailto:'+escapeHtml(l.email)+'" class="hover:text-ceo-blue">'+escapeHtml(l.email)+'</a></div>':'')+
+            '<div class="flex items-center justify-between mt-2"><span class="text-[9px] text-ceo-textMuted">'+timeAgo(l.created)+'</span><div class="flex gap-1">'+btns+'</div></div></div>';
+    }).join('');
+}
+
+async function moveLead(id,newStatus){
+    var lead=masterState.leads.find(function(l){return l.id===id});
+    if(lead){lead.status=newStatus;renderPipeline();updateStats()}
+    try{await fetch('/.netlify/functions/update-leads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,status:newStatus})})}
+    catch(e){console.error('Update failed:',e);loadLeads()}
+}
+
+// ===== APPOINTMENTS / CALENDAR =====
+async function loadAppointments(){
+    try{
+        var r=await fetch('/.netlify/functions/get-appointments');
+        var data=await r.json();
+        masterState.appointments=data.appointments||[];
+        initCalendar();
+        updateStats();
+    }catch(e){
+        console.error('Failed to load appointments:',e);
+        initCalendar();
+    }
+}
+
+function apptToEvent(a){
+    var dur=a.duration||30;
+    var start=new Date(a.date);
+    var end=new Date(start.getTime()+dur*60000);
+    var color=typeColors[a.type]||'#22c55e';
+    return {id:a.id,title:a.name||'Appointment',start:start.toISOString(),end:end.toISOString(),color:color,extendedProps:{phone:a.phone,email:a.email,type:a.type,notes:a.notes,source:a.source,status:a.status,airtableId:a.id}};
+}
+
+function initCalendar(){
+    var el=document.getElementById('fullCalendar');
+    if(calendarInstance){calendarInstance.destroy()}
+    var events=masterState.appointments.filter(function(a){return a.date}).map(apptToEvent);
+    calendarInstance=new FullCalendar.Calendar(el,{
+        initialView:'timeGridWeek',
+        headerToolbar:{left:'prev,next today',center:'title',right:'timeGridWeek,timeGridDay'},
+        slotMinTime:'07:00:00',slotMaxTime:'21:00:00',allDaySlot:false,nowIndicator:true,
+        height:'auto',expandRows:true,eventOverlap:false,slotEventOverlap:false,
+        editable:true,selectable:true,selectMirror:true,dayMaxEvents:true,
+        eventDurationEditable:true,
+        events:events,
+        eventDidMount:function(info){info.el.style.borderRadius='6px';info.el.style.fontSize='0.7rem';info.el.style.fontWeight='600'},
+        // Click blank slot = new appointment
+        select:function(info){
+            document.getElementById('apptStart').value=info.start.toISOString();
+            document.getElementById('apptName').value='';
+            document.getElementById('apptPhone').value='';
+            document.getElementById('apptEmail').value='';
+            document.getElementById('apptType').value='Consultation';
+            document.getElementById('apptNotes').value='';
+            var diff=Math.round((info.end-info.start)/60000);
+            document.getElementById('apptDuration').value=diff>0?diff:30;
+            document.getElementById('apptModal').classList.add('active');
+            calendarInstance.unselect();
+        },
+        // Click event = show details popup
+        eventClick:function(info){
+            info.jsEvent.preventDefault();
+            showEventPopup(info.event,info.jsEvent);
+        },
+        // Drag/drop = update in Airtable
+        eventDrop:function(info){
+            var id=info.event.extendedProps.airtableId||info.event.id;
+            updateAppointmentDate(id,info.event.start);
+        },
+        // Resize = update duration
+        eventResize:function(info){
+            var id=info.event.extendedProps.airtableId||info.event.id;
+            var dur=Math.round((info.event.end-info.event.start)/60000);
+            updateAppointmentDuration(id,info.event.start,dur);
+        }
+    });
+    calendarInstance.render();
+}
+
+// ===== APPOINTMENT CRUD =====
+async function saveAppointment(){
+    var name=document.getElementById('apptName').value.trim();
+    var phone=document.getElementById('apptPhone').value.trim();
+    var email=document.getElementById('apptEmail').value.trim();
+    var type=document.getElementById('apptType').value;
+    var dur=parseInt(document.getElementById('apptDuration').value)||30;
+    var notes=document.getElementById('apptNotes').value.trim();
+    var start=document.getElementById('apptStart').value;
+    if(!name){alert('Name is required');return}
+    closeApptModal();
+    // Add to calendar immediately
+    var color=typeColors[type]||'#22c55e';
+    var end=new Date(new Date(start).getTime()+dur*60000);
+    var tempId='temp-'+Date.now();
+    calendarInstance.addEvent({id:tempId,title:name,start:start,end:end.toISOString(),color:color,extendedProps:{phone:phone,email:email,type:type,notes:notes,source:'Manual'}});
+    try{
+        var r=await fetch('/.netlify/functions/update-appointments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'create',name:name,date:start,phone:phone,email:email,type:type,duration:dur,notes:notes,source:'Manual'})});
+        var data=await r.json();
+        // Replace temp event with real ID
+        var tempEv=calendarInstance.getEventById(tempId);
+        if(tempEv)tempEv.remove();
+        calendarInstance.addEvent({id:data.id,title:name,start:start,end:end.toISOString(),color:color,extendedProps:{phone:phone,email:email,type:type,notes:notes,source:'Manual',airtableId:data.id}});
+        masterState.appointments.push({id:data.id,name:name,date:start,phone:phone,email:email,type:type,duration:dur,notes:notes,source:'Manual',status:'Scheduled'});
+        updateStats();
+    }catch(e){console.error('Failed to save:',e)}
+}
+
+function closeApptModal(){document.getElementById('apptModal').classList.remove('active')}
+
+async function updateAppointmentDate(id,newStart){
+    try{await fetch('/.netlify/functions/update-appointments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:id,date:newStart.toISOString()})})}
+    catch(e){console.error('Drag update failed:',e);loadAppointments()}
+}
+
+async function updateAppointmentDuration(id,newStart,dur){
+    try{await fetch('/.netlify/functions/update-appointments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:id,date:newStart.toISOString(),duration:dur})})}
+    catch(e){console.error('Resize update failed:',e);loadAppointments()}
+}
+
+async function deleteAppointment(id){
+    closeEventPopup();
+    var ev=calendarInstance.getEventById(id);
+    if(ev)ev.remove();
+    masterState.appointments=masterState.appointments.filter(function(a){return a.id!==id});
+    updateStats();
+    try{await fetch('/.netlify/functions/update-appointments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',id:id})})}
+    catch(e){console.error('Delete failed:',e);loadAppointments()}
+}
+
+// ===== EVENT POPUP =====
+function showEventPopup(event,jsEvent){
+    var popup=document.getElementById('eventPopup');
+    var overlay=document.getElementById('eventOverlay');
+    var p=event.extendedProps;
+    var start=event.start;
+    var timeStr=start.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+    var typeBadge=p.type?'<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md" style="background:'+(typeColors[p.type]||'#22c55e')+'20;color:'+(typeColors[p.type]||'#22c55e')+'">'+escapeHtml(p.type)+'</span>':'';
+    document.getElementById('eventPopupContent').innerHTML=
+        '<div class="flex items-center justify-between mb-3"><span class="text-sm font-bold text-ceo-text">'+escapeHtml(event.title)+'</span>'+typeBadge+'</div>'+
+        '<div class="text-[11px] text-ceo-textMuted mb-2"><i data-lucide="clock" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i>'+timeStr+'</div>'+
+        (p.phone?'<div class="text-[11px] text-ceo-textMuted mb-1"><i data-lucide="phone" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i><a href="tel:'+escapeHtml(p.phone)+'" class="hover:text-ceo-blue">'+escapeHtml(p.phone)+'</a></div>':'')+
+        (p.email?'<div class="text-[11px] text-ceo-textMuted mb-1"><i data-lucide="mail" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i><a href="mailto:'+escapeHtml(p.email)+'" class="hover:text-ceo-blue">'+escapeHtml(p.email)+'</a></div>':'')+
+        (p.notes?'<div class="text-[11px] text-ceo-textMuted mt-2 p-2 rounded-lg bg-ceo-card">'+escapeHtml(p.notes)+'</div>':'')+
+        (p.source?'<div class="text-[9px] text-ceo-textMuted mt-2">Source: '+escapeHtml(p.source)+'</div>':'')+
+        '<div class="flex gap-2 mt-4"><button onclick="deleteAppointment(\''+event.id+'\')" class="flex-1 py-2 rounded-lg bg-ceo-red/10 border border-ceo-red/20 text-ceo-red text-[11px] font-bold hover:bg-ceo-red/20 transition-colors">Delete</button><button onclick="closeEventPopup()" class="flex-1 py-2 rounded-lg bg-ceo-card border border-ceo-border text-[11px] text-ceo-textMuted hover:text-ceo-text transition-colors">Close</button></div>';
+    popup.style.display='block';overlay.style.display='block';
+    // Position near click
+    var x=Math.min(jsEvent.clientX,window.innerWidth-380);
+    var y=Math.min(jsEvent.clientY,window.innerHeight-300);
+    popup.style.left=x+'px';popup.style.top=y+'px';
+    lucide.createIcons();
+}
+
+function closeEventPopup(){
+    document.getElementById('eventPopup').style.display='none';
+    document.getElementById('eventOverlay').style.display='none';
+}
+
+// ===== TOAST =====
+function showToast(title,body){
+    document.getElementById('toastTitle').textContent=title;
+    document.getElementById('toastBody').textContent=body;
+    var t=document.getElementById('toast');t.classList.add('show');
+    setTimeout(function(){t.classList.remove('show')},5000);
+}
+
+// ===== STATS =====
+function updateStats(){
+    var leads=masterState.leads.filter(function(l){return l.name||l.business||l.phone});
+    var appts=masterState.appointments.filter(function(a){return a.date&&a.status!=='Cancelled'});
+    document.getElementById('kpiLeads').textContent=leads.length;
+    document.getElementById('kpiAppointments').textContent=appts.length;
+    var conv=leads.length>0?Math.round((appts.length/leads.length)*100):0;
+    document.getElementById('kpiConversion').textContent=conv+'%';
+    var nw=masterState.leads.filter(function(l){return !l.status||l.status==='New'}).length;
+    document.getElementById('notifDot').style.display=nw>0?'block':'none';
+}
+
+// ===== CEO TASKS =====
+function renderCEOTasks(){
+    document.getElementById('ceoTasksList').innerHTML=masterState.ceoTasks.map(function(t){
+        return '<label class="flex items-start gap-2.5 cursor-pointer group"><input type="checkbox" class="ceo-checkbox mt-0.5" '+(t.done?'checked':'')+' onchange="toggleTask('+t.id+')"><span class="text-[11px] text-ceo-textMuted leading-snug group-hover:text-ceo-text transition-colors '+(t.done?'line-through opacity-50':'')+'">'+t.text+'</span></label>';
+    }).join('');
+}
+function toggleTask(id){var t=masterState.ceoTasks.find(function(x){return x.id===id});if(t){t.done=!t.done;renderCEOTasks()}}
+
+// ===== AI COMMAND =====
+function renderAIModelSelector(){
+    document.getElementById('aiModelSelect').innerHTML=masterState.aiModels.map(function(m){return '<option value="'+m.id+'">'+m.name+' \u2014 '+m.badge+'</option>'}).join('');
+}
+
+function executeAICommand(){
+    var input=document.getElementById('aiInput'),terminal=document.getElementById('aiTerminal'),content=document.getElementById('aiTerminalContent');
+    var cmd=input.value.trim();if(!cmd)return;
+    var model=document.getElementById('aiModelSelect').selectedOptions[0].text;
+    terminal.classList.remove('hidden');
+    content.innerHTML='<div class="text-ceo-textMuted mb-1"><span class="text-ceo-green">ceo@smartlayer</span>:<span class="text-ceo-blue">~</span>$ '+escapeHtml(cmd)+'</div><div class="flex items-center gap-2 text-ceo-textMuted"><span class="inline-block w-3 h-3 border-2 border-ceo-green border-t-transparent rounded-full animate-spin"></span>Routing...</div>';
+    input.value='';input.disabled=true;
+    setTimeout(function(){
+        var resp=getMockResponse(cmd);
+        content.innerHTML='<div class="text-ceo-textMuted mb-1"><span class="text-ceo-green">ceo@smartlayer</span>:<span class="text-ceo-blue">~</span>$ '+escapeHtml(cmd)+'</div><div class="text-ceo-green">'+resp+'</div><div class="mt-2 text-ceo-textMuted"><span class="text-ceo-green">ceo@smartlayer</span>:<span class="text-ceo-blue">~</span>$ <span class="cursor-blink"></span></div>';
+        input.disabled=false;input.focus();
+    },1500);
+}
+
+function getMockResponse(cmd){
+    var lc=cmd.toLowerCase();
+    var leads=masterState.leads,appts=masterState.appointments;
+    if(lc.includes('lead')){var nw=leads.filter(function(l){return !l.status||l.status==='New'}).length;return leads.length+' leads total. '+nw+' new.'}
+    if(lc.includes('appoint')||lc.includes('calendar'))return appts.length+' appointments scheduled.';
+    return leads.length+' leads, '+appts.length+' appointments. All systems operational.';
+}
+
+// ===== DEEP WORK =====
+function toggleDeepWork(){
+    masterState.deepWorkActive=!masterState.deepWorkActive;
+    var toggle=document.getElementById('deepWorkToggle'),overlay=document.getElementById('deepWorkOverlay');
+    if(masterState.deepWorkActive){toggle.classList.add('active');overlay.classList.add('active')}
+    else{toggle.classList.remove('active');overlay.classList.remove('active')}
+}
+
+// Auto-refresh every 60s
+setInterval(function(){loadLeads();loadAppointments()},60000);
+</script>
 </body>
 </html>
