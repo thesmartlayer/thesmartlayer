@@ -1,5 +1,27 @@
 // netlify/functions/chat.js
-// Chatbot backend using Anthropic Claude API (Haiku 4.5 for cost efficiency)
+// Chatbot backend using Anthropic Claude API (Haiku 4.5)
+// Supports tool use for booking appointments via Airtable
+
+const AIRTABLE_BASE_ID = 'appoi3JJ82TuvnXwl';
+const AIRTABLE_TABLE = 'Appointments';
+
+const BOOKING_TOOL = {
+    name: "book_appointment",
+    description: "Book a consultation or demo appointment for a potential client interested in The Smart Layer's services. Use this when a customer wants to schedule a meeting, consultation, demo, or follow-up. Always confirm the date/time with the customer before booking.",
+    input_schema: {
+        type: "object",
+        properties: {
+            name: { type: "string", description: "Client's full name" },
+            phone: { type: "string", description: "Client's phone number (optional)" },
+            email: { type: "string", description: "Client's email address (optional)" },
+            date: { type: "string", description: "Appointment date and time in ISO 8601 format (e.g. 2026-03-05T14:00:00). Use Atlantic Time (America/Moncton)." },
+            type: { type: "string", enum: ["Consultation", "Demo", "Follow-up"], description: "Type of appointment. Default to Consultation for new prospects, Demo if they want to see the platform." },
+            duration: { type: "number", description: "Duration in minutes. Default 30 for consultations, 45 for demos." },
+            notes: { type: "string", description: "Any relevant notes about what the client needs or their business type" }
+        },
+        required: ["name", "date", "type"]
+    }
+};
 
 const SYSTEM_PROMPT = `You are the AI sales assistant for The Smart Layer, a local business in New Brunswick, Canada that builds AI-powered business platforms for service businesses.
 
@@ -42,6 +64,16 @@ LIVE DEMO:
 - We have a fully working demo at auto.thesmartlayer.com showing everything — website, chatbot, phone agent, customer dashboard, and business owner dashboard
 - Anyone can try the Owner View or Customer View without signing up
 
+BOOKING APPOINTMENTS:
+- You can book appointments for prospects using the book_appointment tool
+- Business hours are Mon-Fri 9am-6pm, Sat 10am-2pm Atlantic Time
+- Do NOT book on Sundays
+- Default consultation length is 30 minutes, demos are 45 minutes
+- When someone wants to book, collect their name and preferred date/time first
+- Confirm the date/time with them before using the tool
+- If they don't specify a time, suggest a few available slots from the availability info provided
+- Today's date is provided in the availability context below
+
 YOUR BEHAVIOR:
 - Be warm, friendly, and conversational — not robotic
 - Keep responses concise (2-4 sentences usually)
@@ -50,6 +82,77 @@ YOUR BEHAVIOR:
 - If asked something you don't know, offer to connect them with the team
 - Contact: info@thesmartlayer.com or (855) 404-AIAI (2424)
 - Business hours: Mon-Fri 9-6, Sat 10-2, Sun closed`;
+
+// Fetch existing appointments for availability context
+async function getAvailability() {
+    const airtableKey = process.env.AIRTABLE_API_KEY;
+    if (!airtableKey) return '';
+
+    try {
+        const now = new Date();
+        const twoWeeks = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+        const filterFormula = `AND(IS_AFTER({Date},'${now.toISOString().split('T')[0]}'),IS_BEFORE({Date},'${twoWeeks.toISOString().split('T')[0]}'),{Status}!='Cancelled')`;
+
+        const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?filterByFormula=${encodeURIComponent(filterFormula)}&sort%5B0%5D%5Bfield%5D=Date&sort%5B0%5D%5Bdirection%5D=asc`;
+
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${airtableKey}` }
+        });
+
+        if (!response.ok) return '';
+        const data = await response.json();
+
+        if (!data.records || data.records.length === 0) {
+            return `\n\nAVAILABILITY: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}. No existing appointments in the next 2 weeks — all business-hours slots are open.`;
+        }
+
+        const booked = data.records.map(r => {
+            const d = new Date(r.fields.Date);
+            const dur = r.fields.Duration || 30;
+            return `${d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} (${dur}min)`;
+        }).join('\n  - ');
+
+        return `\n\nAVAILABILITY: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}.\nAlready booked slots (DO NOT double-book these):\n  - ${booked}\nAll other business-hours slots (Mon-Fri 9am-6pm, Sat 10am-2pm) are available.`;
+    } catch (e) {
+        console.error('Availability fetch error:', e);
+        return '';
+    }
+}
+
+// Create appointment in Airtable
+async function createAppointment(input) {
+    const airtableKey = process.env.AIRTABLE_API_KEY;
+    if (!airtableKey) throw new Error('No Airtable key');
+
+    const fields = {
+        Name: input.name,
+        Date: input.date,
+        Type: input.type || 'Consultation',
+        Duration: input.duration || (input.type === 'Demo' ? 45 : 30),
+        Status: 'Scheduled',
+        Source: 'Chatbot'
+    };
+    if (input.phone) fields.Phone = input.phone;
+    if (input.email) fields.Email = input.email;
+    if (input.notes) fields.Notes = input.notes;
+
+    const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${airtableKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ records: [{ fields }] })
+    });
+
+    if (!response.ok) {
+        const err = await response.text();
+        throw new Error(`Airtable create failed: ${err}`);
+    }
+
+    const data = await response.json();
+    return data.records[0].id;
+}
 
 exports.handler = async (event) => {
     const headers = {
@@ -83,6 +186,11 @@ exports.handler = async (event) => {
             .filter(m => m.role === 'user' || m.role === 'assistant')
             .map(m => ({ role: m.role, content: m.content }));
 
+        // Get availability context
+        const availability = await getAvailability();
+        const systemWithAvailability = SYSTEM_PROMPT + availability;
+
+        // First API call — may return text or tool_use
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
@@ -92,9 +200,10 @@ exports.handler = async (event) => {
             },
             body: JSON.stringify({
                 model: 'claude-haiku-4-5-20251001',
-                max_tokens: 300,
-                system: SYSTEM_PROMPT,
-                messages: anthropicMessages
+                max_tokens: 1024,
+                system: systemWithAvailability,
+                messages: anthropicMessages,
+                tools: [BOOKING_TOOL]
             })
         });
 
@@ -109,7 +218,77 @@ exports.handler = async (event) => {
         }
 
         const data = await response.json();
-        const reply = data.content?.[0]?.text || "I'd love to help! Could you tell me a bit about your business?";
+
+        // Check if Claude wants to use a tool
+        const toolUseBlock = data.content.find(b => b.type === 'tool_use');
+
+        if (toolUseBlock && toolUseBlock.name === 'book_appointment') {
+            // Extract any text Claude said before the tool call
+            const prefixText = data.content
+                .filter(b => b.type === 'text')
+                .map(b => b.text)
+                .join('');
+
+            let toolResultContent;
+            try {
+                const appointmentId = await createAppointment(toolUseBlock.input);
+                const apptDate = new Date(toolUseBlock.input.date);
+                const dateStr = apptDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+                const timeStr = apptDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                toolResultContent = `Appointment successfully booked! ID: ${appointmentId}. ${toolUseBlock.input.type} for ${toolUseBlock.input.name} on ${dateStr} at ${timeStr}.`;
+            } catch (bookingError) {
+                console.error('Booking error:', bookingError);
+                toolResultContent = `Booking failed: ${bookingError.message}. Please ask the customer to try again or contact us directly.`;
+            }
+
+            // Second API call — send tool result back, get final response
+            const followUpMessages = [
+                ...anthropicMessages,
+                { role: 'assistant', content: data.content },
+                { role: 'user', content: [{ type: 'tool_result', tool_use_id: toolUseBlock.id, content: toolResultContent }] }
+            ];
+
+            const followUpResponse = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify({
+                    model: 'claude-haiku-4-5-20251001',
+                    max_tokens: 1024,
+                    system: systemWithAvailability,
+                    messages: followUpMessages,
+                    tools: [BOOKING_TOOL]
+                })
+            });
+
+            if (followUpResponse.ok) {
+                const followUpData = await followUpResponse.json();
+                const reply = followUpData.content
+                    .filter(b => b.type === 'text')
+                    .map(b => b.text)
+                    .join('');
+                return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify({ reply: reply || "Your appointment has been booked! We'll see you soon." })
+                };
+            }
+
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ reply: prefixText || "Your appointment has been booked! We'll be in touch to confirm." })
+            };
+        }
+
+        // No tool use — just return the text response
+        const reply = data.content
+            .filter(b => b.type === 'text')
+            .map(b => b.text)
+            .join('') || "I'd love to help! Could you tell me a bit about your business?";
 
         return {
             statusCode: 200,
