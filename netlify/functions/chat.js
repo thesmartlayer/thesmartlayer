@@ -66,13 +66,34 @@ LIVE DEMO:
 
 BOOKING APPOINTMENTS:
 - You can book appointments for prospects using the book_appointment tool
-- Business hours are Mon-Fri 9am-6pm, Sat 10am-2pm Atlantic Time
-- Do NOT book on Sundays
+- AVAILABILITY (Atlantic Time):
+  Monday, Tuesday, Thursday, Friday: 9:00 AM - 1:00 PM
+  Wednesday: 9:00 AM - 6:00 PM
+  Saturday: 10:00 AM - 2:00 PM
+  Sunday: CLOSED
+- Do NOT book outside these hours. If someone requests a time outside these hours, explain availability and suggest the nearest open slot.
 - Default consultation length is 30 minutes, demos are 45 minutes
 - When someone wants to book, collect their name and preferred date/time first
 - Confirm the date/time with them before using the tool
 - If they don't specify a time, suggest a few available slots from the availability info provided
 - Today's date is provided in the availability context below
+
+VIRTUAL VS IN-PERSON:
+- ALL consultations and demos are VIRTUAL by default (Zoom or phone call)
+- Proactively tell customers: "Consultations are virtual — Zoom or phone, whichever you prefer"
+- Only offer in-person if the customer specifically asks. If they request in-person, say: "We can do in-person in Fredericton or Moncton! I'll submit your preferred time and John will confirm availability within a few hours."
+- For in-person requests, still book the appointment but add "IN-PERSON REQUEST — needs John's confirmation" to the notes field
+
+AVAILABILITY CLARITY:
+- When a requested time is already booked, say it CLEARLY: "That slot is already taken" — do not be vague or wishy-washy
+- Then immediately suggest 2-3 specific open slots nearby
+- NEVER book an overlapping time. If the availability info shows a slot is booked, it is booked. Period.
+
+CRITICAL — NO DOUBLE BOOKING:
+- You may ONLY call the book_appointment tool ONCE per conversation
+- If the confirmation message shows a wrong time, do NOT try to fix it by booking again
+- Instead say: "Let me flag this for John to confirm — you'll get a confirmation email shortly"
+- If anything seems off after booking, direct them to contact us rather than rebooking
 
 YOUR IDENTITY — CRITICAL:
 - You are an AI ASSISTANT for The Smart Layer — NOT the founder, NOT a human team member
@@ -91,8 +112,7 @@ YOUR BEHAVIOR:
 - Gently guide toward booking a free consultation or trying the free AI Visibility Audit
 - If asked something you don't know, say "John can cover that in detail during your consultation" 
 - Don't over-explain features — give a quick hook and push toward the booking
-- Contact: info@thesmartlayer.com or (855) 404-AIAI (2424)
-- Business hours: Mon-Fri 9-6, Sat 10-2, Sun closed`;
+- Contact: info@thesmartlayer.com or (855) 404-AIAI (2424)`;
 
 // Fetch existing appointments for availability context
 async function getAvailability() {
@@ -114,16 +134,16 @@ async function getAvailability() {
         const data = await response.json();
 
         if (!data.records || data.records.length === 0) {
-            return `\n\nAVAILABILITY: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}. No existing appointments in the next 2 weeks — all business-hours slots are open.`;
+            return `\n\nAVAILABILITY: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Moncton' })}. No existing appointments in the next 2 weeks — all business-hours slots are open.`;
         }
 
         const booked = data.records.map(r => {
             const d = new Date(r.fields.Date);
             const dur = r.fields.Duration || 30;
-            return `${d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} (${dur}min)`;
+            return `${d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'America/Moncton' })} ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Moncton' })} (${dur}min)`;
         }).join('\n  - ');
 
-        return `\n\nAVAILABILITY: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}.\nAlready booked slots (DO NOT double-book these):\n  - ${booked}\nAll other business-hours slots (Mon-Fri 9am-6pm, Sat 10am-2pm) are available.`;
+        return `\n\nAVAILABILITY: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Moncton' })}.\nAlready booked slots (DO NOT double-book these):\n  - ${booked}\nAll other business-hours slots (Mon-Fri 9am-6pm, Sat 10am-2pm) are available.`;
     } catch (e) {
         console.error('Availability fetch error:', e);
         return '';
@@ -285,7 +305,12 @@ exports.handler = async (event) => {
         // Check if Claude wants to use a tool
         const toolUseBlock = data.content.find(b => b.type === 'tool_use');
 
-        if (toolUseBlock && toolUseBlock.name === 'book_appointment') {
+        // Guard: prevent double-booking in same conversation
+        const alreadyBooked = anthropicMessages.some(m => 
+            Array.isArray(m.content) && m.content.some(c => c.type === 'tool_result')
+        );
+
+        if (toolUseBlock && toolUseBlock.name === 'book_appointment' && !alreadyBooked) {
             // Extract any text Claude said before the tool call
             const prefixText = data.content
                 .filter(b => b.type === 'text')
@@ -296,8 +321,8 @@ exports.handler = async (event) => {
             try {
                 const appointmentId = await createAppointment(toolUseBlock.input);
                 const apptDate = new Date(toolUseBlock.input.date);
-                const dateStr = apptDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-                const timeStr = apptDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                const dateStr = apptDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Moncton' });
+                const timeStr = apptDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Moncton' });
                 toolResultContent = `Appointment successfully booked! ID: ${appointmentId}. ${toolUseBlock.input.type} for ${toolUseBlock.input.name} on ${dateStr} at ${timeStr}.`;
                 // Save transcript linked to this booking
                 await saveTranscript(appointmentId, anthropicMessages, 'Chatbot');
@@ -346,6 +371,19 @@ exports.handler = async (event) => {
                 statusCode: 200,
                 headers,
                 body: JSON.stringify({ reply: prefixText || "Your appointment has been booked! We'll be in touch to confirm." })
+            };
+        }
+
+        // Double-booking blocked — return text only
+        if (toolUseBlock && alreadyBooked) {
+            const textOnly = data.content
+                .filter(b => b.type === 'text')
+                .map(b => b.text)
+                .join('');
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ reply: textOnly || "Your appointment is already booked! If anything needs to change, just email info@thesmartlayer.com or call (855) 404-AIAI." })
             };
         }
 
