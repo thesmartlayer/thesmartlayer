@@ -584,20 +584,63 @@ function showEventPopup(event,jsEvent){
     var start=event.start;
     var timeStr=start.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
     var typeBadge=p.type?'<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md" style="background:'+(typeColors[p.type]||'#22c55e')+'20;color:'+(typeColors[p.type]||'#22c55e')+'">'+escapeHtml(p.type)+'</span>':'';
+    var srcBadge='';
+    if(p.source){
+        var sc=p.source.toLowerCase();
+        var badgeColor=sc.includes('chat')||sc.includes('bot')?'#a855f7':sc.includes('retell')||sc.includes('phone')?'#3b82f6':sc.includes('web')?'#f59e0b':'#22c55e';
+        srcBadge='<span class="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-md ml-1" style="background:'+badgeColor+'15;color:'+badgeColor+'">'+escapeHtml(p.source)+'</span>';
+    }
+    // Show transcript button only for chatbot/retell sources
+    var showTranscriptBtn=(p.source&&(p.source.toLowerCase().includes('chat')||p.source.toLowerCase().includes('retell')));
     document.getElementById('eventPopupContent').innerHTML=
-        '<div class="flex items-center justify-between mb-3"><span class="text-sm font-bold text-ceo-text">'+escapeHtml(event.title)+'</span>'+typeBadge+'</div>'+
+        '<div class="flex items-center justify-between mb-3"><span class="text-sm font-bold text-ceo-text">'+escapeHtml(event.title)+'</span><div>'+typeBadge+srcBadge+'</div></div>'+
         '<div class="text-[11px] text-ceo-textMuted mb-2"><i data-lucide="clock" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i>'+timeStr+'</div>'+
         (p.phone?'<div class="text-[11px] text-ceo-textMuted mb-1"><i data-lucide="phone" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i><a href="tel:'+escapeHtml(p.phone)+'" class="hover:text-ceo-blue">'+escapeHtml(p.phone)+'</a></div>':'')+
         (p.email?'<div class="text-[11px] text-ceo-textMuted mb-1"><i data-lucide="mail" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i><a href="mailto:'+escapeHtml(p.email)+'" class="hover:text-ceo-blue">'+escapeHtml(p.email)+'</a></div>':'')+
-        '<div class="mt-2"><label class="text-[9px] font-bold uppercase tracking-widest text-ceo-textMuted block mb-1">Notes</label><textarea id="popupNotes" rows="3" style="width:100%;background:#0f1117;border:1px solid #2a2f45;border-radius:8px;color:#e2e8f0;padding:8px 10px;font-size:11px;font-family:Inter,sans-serif;resize:vertical;outline:none" placeholder="Add notes...">'+escapeHtml(currentPopupOriginalNotes)+'</textarea></div>'+
-        (p.source?'<div class="text-[9px] text-ceo-textMuted mt-2">Source: '+escapeHtml(p.source)+'</div>':'')+
-        '<div class="flex gap-2 mt-4"><button onclick="deleteAppointment(\''+event.id+'\')" class="flex-1 py-2 rounded-lg bg-ceo-red/10 border border-ceo-red/20 text-ceo-red text-[11px] font-bold hover:bg-ceo-red/20 transition-colors">Delete</button><button onclick="closeEventPopup()" class="flex-1 py-2 rounded-lg bg-ceo-card border border-ceo-border text-[11px] text-ceo-textMuted hover:text-ceo-text transition-colors">Close</button></div>';
+        '<div class="mt-3"><label class="text-[9px] font-bold uppercase tracking-widest text-ceo-textMuted block mb-1">Notes</label><textarea id="popupNotes" rows="2" style="width:100%;background:#0f1117;border:1px solid #2a2f45;border-radius:8px;color:#e2e8f0;padding:8px 10px;font-size:11px;font-family:Inter,sans-serif;resize:vertical;outline:none" placeholder="Add notes...">'+escapeHtml(currentPopupOriginalNotes)+'</textarea></div>'+
+        (showTranscriptBtn?'<button onclick="loadTranscript(\''+currentPopupEventId+'\')" id="transcriptBtn" class="w-full mt-2 py-2 rounded-lg bg-ceo-purple/10 border border-ceo-purple/20 text-ceo-purple text-[11px] font-bold hover:bg-ceo-purple/20 transition-colors flex items-center justify-center gap-1.5"><i data-lucide="message-square-text" class="w-3.5 h-3.5"></i>View Chat Transcript</button>':'')+
+        '<div id="transcriptArea" style="display:none" class="mt-2 p-3 rounded-lg bg-ceo-bg border border-ceo-border max-h-48 overflow-y-auto"><div id="transcriptContent" class="text-[11px] leading-relaxed"></div></div>'+
+        '<div class="flex gap-2 mt-3"><button onclick="deleteAppointment(\''+event.id+'\')" class="flex-1 py-2 rounded-lg bg-ceo-red/10 border border-ceo-red/20 text-ceo-red text-[11px] font-bold hover:bg-ceo-red/20 transition-colors">Delete</button><button onclick="closeEventPopup()" class="flex-1 py-2 rounded-lg bg-ceo-card border border-ceo-border text-[11px] text-ceo-textMuted hover:text-ceo-text transition-colors">Close</button></div>';
     popup.style.display='block';overlay.style.display='block';
     // Position near click
     var x=Math.min(jsEvent.clientX,window.innerWidth-380);
     var y=Math.min(jsEvent.clientY,window.innerHeight-300);
     popup.style.left=x+'px';popup.style.top=y+'px';
     lucide.createIcons();
+}
+
+async function loadTranscript(bookingId){
+    var btn=document.getElementById('transcriptBtn');
+    var area=document.getElementById('transcriptArea');
+    var content=document.getElementById('transcriptContent');
+    if(!btn)return;
+    btn.textContent='Loading...';btn.disabled=true;
+    try{
+        var r=await fetch('/.netlify/functions/get-transcripts?booking_id='+encodeURIComponent(bookingId));
+        var data=await r.json();
+        if(data.transcripts&&data.transcripts.length>0){
+            var t=data.transcripts[0];
+            var lines=t.full_transcript.split('\n').map(function(line){
+                line=line.trim();if(!line)return '';
+                if(line.startsWith('Customer:')){
+                    return '<div style="margin-bottom:8px"><span class="text-[9px] font-bold text-ceo-blue uppercase">Customer</span><div class="text-[11px] text-ceo-text mt-0.5">'+escapeHtml(line.replace('Customer: ',''))+'</div></div>';
+                }else if(line.startsWith('AI Assistant:')){
+                    return '<div style="margin-bottom:8px"><span class="text-[9px] font-bold text-ceo-purple uppercase">AI Assistant</span><div class="text-[11px] text-ceo-textMuted mt-0.5">'+escapeHtml(line.replace('AI Assistant: ',''))+'</div></div>';
+                }
+                return '<div class="text-[11px] text-ceo-textMuted mb-1">'+escapeHtml(line)+'</div>';
+            }).filter(Boolean).join('');
+            content.innerHTML=lines||'<span class="text-ceo-textMuted">Empty transcript</span>';
+            area.style.display='block';
+            btn.style.display='none';
+        }else{
+            content.innerHTML='<span class="text-ceo-textMuted text-[11px]">No transcript found for this booking</span>';
+            area.style.display='block';
+            btn.style.display='none';
+        }
+    }catch(e){
+        console.error('Transcript load error:',e);
+        btn.textContent='Failed to load';btn.disabled=false;
+    }
 }
 
 function closeEventPopup(){
