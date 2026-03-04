@@ -74,12 +74,23 @@ BOOKING APPOINTMENTS:
 - If they don't specify a time, suggest a few available slots from the availability info provided
 - Today's date is provided in the availability context below
 
+YOUR IDENTITY — CRITICAL:
+- You are an AI ASSISTANT for The Smart Layer — NOT the founder, NOT a human team member
+- NEVER pretend to be the person they'll meet with
+- The consultation/demo will be with "John, our founder" or "our team" — make that clear
+- Say things like "I'll book you in with John" or "Our founder will walk you through that"
+- NEVER say "I'll see you tomorrow" or "I'll show you the demo" — you are the chatbot, not the consultant
+- Do NOT give away detailed strategy, implementation plans, or deep technical advice
+- Tease value and redirect: "That's a great question — John can walk you through exactly how that works for your industry during the consultation"
+- Save the real expertise for the human consultation — your job is to spark interest and get the booking
+
 YOUR BEHAVIOR:
 - Be warm, friendly, and conversational — not robotic
-- Keep responses concise (2-4 sentences usually)
+- Keep responses SHORT (2-3 sentences max). Don't write paragraphs.
 - Ask about their business type to give relevant examples
 - Gently guide toward booking a free consultation or trying the free AI Visibility Audit
-- If asked something you don't know, offer to connect them with the team
+- If asked something you don't know, say "John can cover that in detail during your consultation" 
+- Don't over-explain features — give a quick hook and push toward the booking
 - Contact: info@thesmartlayer.com or (855) 404-AIAI (2424)
 - Business hours: Mon-Fri 9-6, Sat 10-2, Sun closed`;
 
@@ -152,6 +163,48 @@ async function createAppointment(input) {
 
     const data = await response.json();
     return data.records[0].id;
+}
+
+// Save chat transcript to Airtable
+async function saveTranscript(bookingId, messages, source) {
+    const airtableKey = process.env.AIRTABLE_API_KEY;
+    if (!airtableKey) return;
+
+    try {
+        // Build readable transcript
+        const transcript = messages
+            .filter(m => m.role === 'user' || m.role === 'assistant')
+            .map(m => {
+                const role = m.role === 'user' ? 'Customer' : 'AI Assistant';
+                const text = typeof m.content === 'string' ? m.content : '[tool interaction]';
+                return `${role}: ${text}`;
+            })
+            .join('\n\n');
+
+        // Build summary from last few exchanges
+        const lastMessages = messages.filter(m => m.role === 'user').slice(-3);
+        const summary = lastMessages.map(m => typeof m.content === 'string' ? m.content : '').filter(Boolean).join(' | ');
+
+        const fields = {
+            transcript_id: 'chat-' + Date.now(),
+            booking_id: bookingId || '',
+            source: source || 'Chatbot',
+            full_transcript: transcript,
+            summary: summary.slice(0, 500),
+            created_at: new Date().toISOString()
+        };
+
+        await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${airtableKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ records: [{ fields }] })
+        });
+    } catch (e) {
+        console.error('Transcript save error:', e);
+    }
 }
 
 exports.handler = async (event) => {
@@ -236,6 +289,8 @@ exports.handler = async (event) => {
                 const dateStr = apptDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
                 const timeStr = apptDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                 toolResultContent = `Appointment successfully booked! ID: ${appointmentId}. ${toolUseBlock.input.type} for ${toolUseBlock.input.name} on ${dateStr} at ${timeStr}.`;
+                // Save transcript linked to this booking
+                await saveTranscript(appointmentId, anthropicMessages, 'Chatbot');
             } catch (bookingError) {
                 console.error('Booking error:', bookingError);
                 toolResultContent = `Booking failed: ${bookingError.message}. Please ask the customer to try again or contact us directly.`;
