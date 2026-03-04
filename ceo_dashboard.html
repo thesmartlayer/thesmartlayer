@@ -572,10 +572,15 @@ async function deleteAppointment(id){
 }
 
 // ===== EVENT POPUP =====
+var currentPopupEventId=null;
+var currentPopupOriginalNotes='';
+
 function showEventPopup(event,jsEvent){
     var popup=document.getElementById('eventPopup');
     var overlay=document.getElementById('eventOverlay');
     var p=event.extendedProps;
+    currentPopupEventId=p.airtableId||event.id;
+    currentPopupOriginalNotes=p.notes||'';
     var start=event.start;
     var timeStr=start.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
     var typeBadge=p.type?'<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md" style="background:'+(typeColors[p.type]||'#22c55e')+'20;color:'+(typeColors[p.type]||'#22c55e')+'">'+escapeHtml(p.type)+'</span>':'';
@@ -584,7 +589,7 @@ function showEventPopup(event,jsEvent){
         '<div class="text-[11px] text-ceo-textMuted mb-2"><i data-lucide="clock" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i>'+timeStr+'</div>'+
         (p.phone?'<div class="text-[11px] text-ceo-textMuted mb-1"><i data-lucide="phone" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i><a href="tel:'+escapeHtml(p.phone)+'" class="hover:text-ceo-blue">'+escapeHtml(p.phone)+'</a></div>':'')+
         (p.email?'<div class="text-[11px] text-ceo-textMuted mb-1"><i data-lucide="mail" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i><a href="mailto:'+escapeHtml(p.email)+'" class="hover:text-ceo-blue">'+escapeHtml(p.email)+'</a></div>':'')+
-        (p.notes?'<div class="text-[11px] text-ceo-textMuted mt-2 p-2 rounded-lg bg-ceo-card">'+escapeHtml(p.notes)+'</div>':'')+
+        '<div class="mt-2"><label class="text-[9px] font-bold uppercase tracking-widest text-ceo-textMuted block mb-1">Notes</label><textarea id="popupNotes" rows="3" style="width:100%;background:#0f1117;border:1px solid #2a2f45;border-radius:8px;color:#e2e8f0;padding:8px 10px;font-size:11px;font-family:Inter,sans-serif;resize:vertical;outline:none" placeholder="Add notes...">'+escapeHtml(currentPopupOriginalNotes)+'</textarea></div>'+
         (p.source?'<div class="text-[9px] text-ceo-textMuted mt-2">Source: '+escapeHtml(p.source)+'</div>':'')+
         '<div class="flex gap-2 mt-4"><button onclick="deleteAppointment(\''+event.id+'\')" class="flex-1 py-2 rounded-lg bg-ceo-red/10 border border-ceo-red/20 text-ceo-red text-[11px] font-bold hover:bg-ceo-red/20 transition-colors">Delete</button><button onclick="closeEventPopup()" class="flex-1 py-2 rounded-lg bg-ceo-card border border-ceo-border text-[11px] text-ceo-textMuted hover:text-ceo-text transition-colors">Close</button></div>';
     popup.style.display='block';overlay.style.display='block';
@@ -596,8 +601,29 @@ function showEventPopup(event,jsEvent){
 }
 
 function closeEventPopup(){
+    // Auto-save notes if changed
+    var notesEl=document.getElementById('popupNotes');
+    if(notesEl&&currentPopupEventId){
+        var newNotes=notesEl.value.trim();
+        if(newNotes!==currentPopupOriginalNotes){
+            saveNotes(currentPopupEventId,newNotes);
+            // Update local state
+            var appt=masterState.appointments.find(function(a){return a.id===currentPopupEventId});
+            if(appt)appt.notes=newNotes;
+            // Update calendar event extendedProps
+            var ev=calendarInstance.getEventById(currentPopupEventId);
+            if(ev)ev.setExtendedProp('notes',newNotes);
+        }
+    }
+    currentPopupEventId=null;
+    currentPopupOriginalNotes='';
     document.getElementById('eventPopup').style.display='none';
     document.getElementById('eventOverlay').style.display='none';
+}
+
+async function saveNotes(id,notes){
+    try{await fetch('/.netlify/functions/update-appointments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:id,notes:notes})})}
+    catch(e){console.error('Notes save failed:',e)}
 }
 
 // ===== TOAST =====
@@ -666,7 +692,7 @@ function renderActivityFeed(){
     // Add appointments as activity items
     masterState.appointments.forEach(function(a){
         if(!a.name&&!a.date)return;
-        items.push({type:'appointment',name:a.name||'Appointment',source:a.source||'Manual',time:a.created||a.date,apptType:a.type||'Consultation',date:a.date,status:a.status});
+        items.push({type:'appointment',id:a.id,name:a.name||'Appointment',source:a.source||'Manual',time:a.created||a.date,apptType:a.type||'Consultation',date:a.date,status:a.status});
     });
     // Sort by time, newest first
     items.sort(function(a,b){return new Date(b.time)-new Date(a.time)});
@@ -692,9 +718,20 @@ function renderActivityFeed(){
             var apptTime=item.date?new Date(item.date).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
             desc=(item.apptType||'Appt')+' booked'+(apptTime?' &middot; '+apptTime:'');
         }
-        return '<div class="activity-item"><div class="flex items-center gap-2.5 mb-1"><i data-lucide="'+icon+'" class="w-3.5 h-3.5 text-ceo-textMuted flex-shrink-0"></i><span class="text-[11px] font-semibold text-ceo-text truncate">'+escapeHtml(item.name)+'</span><span class="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-md ml-auto flex-shrink-0 '+srcClass+'">'+escapeHtml(srcLabel)+'</span></div><div class="flex items-center justify-between"><span class="text-[10px] text-ceo-textMuted">'+desc+'</span><span class="text-[9px] text-ceo-textMuted">'+timeAgo(item.time)+'</span></div></div>';
+        var clickAttr=item.type==='appointment'&&item.id?' onclick="openActivityPopup(\''+item.id+'\')" style="cursor:pointer"':'';
+        return '<div class="activity-item"'+clickAttr+'><div class="flex items-center gap-2.5 mb-1"><i data-lucide="'+icon+'" class="w-3.5 h-3.5 text-ceo-textMuted flex-shrink-0"></i><span class="text-[11px] font-semibold text-ceo-text truncate">'+escapeHtml(item.name)+'</span><span class="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-md ml-auto flex-shrink-0 '+srcClass+'">'+escapeHtml(srcLabel)+'</span></div><div class="flex items-center justify-between"><span class="text-[10px] text-ceo-textMuted">'+desc+'</span><span class="text-[9px] text-ceo-textMuted">'+timeAgo(item.time)+'</span></div></div>';
     }).join('');
     lucide.createIcons();
+}
+
+// Open popup from activity feed click
+function openActivityPopup(id){
+    var ev=calendarInstance.getEventById(id);
+    if(ev){
+        // Create a fake jsEvent centered on screen
+        var fakeEvent={clientX:window.innerWidth/2,clientY:window.innerHeight/3};
+        showEventPopup(ev,fakeEvent);
+    }
 }
 
 // ===== DEEP WORK =====
