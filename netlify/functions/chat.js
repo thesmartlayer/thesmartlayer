@@ -14,7 +14,7 @@ const BOOKING_TOOL = {
             name: { type: "string", description: "Client's full name" },
             phone: { type: "string", description: "Client's phone number (optional)" },
             email: { type: "string", description: "Client's email address (optional)" },
-            date: { type: "string", description: "Appointment date and time in ISO 8601 format with Atlantic Time offset. ALWAYS use -04:00 offset. Example: 2026-03-05T14:00:00-04:00 for 2pm Atlantic Time." },
+            date: { type: "string", description: "Appointment date and time as local Atlantic Time in format YYYY-MM-DDTHH:MM:SS. Do NOT include any timezone offset or Z suffix. Just the plain local time. Example: 2026-03-05T14:00:00 for 2pm, 2026-03-11T16:00:00 for 4pm." },
             type: { type: "string", enum: ["Consultation", "Demo", "Follow-up"], description: "Type of appointment. Default to Consultation for new prospects, Demo if they want to see the platform." },
             duration: { type: "number", description: "Duration in minutes. Default 30 for consultations, 45 for demos." },
             notes: { type: "string", description: "Any relevant notes about what the client needs or their business type" }
@@ -134,7 +134,7 @@ async function getAvailability() {
         const data = await response.json();
 
         if (!data.records || data.records.length === 0) {
-            return `\n\nAVAILABILITY: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Moncton' })}. No existing appointments in the next 2 weeks — all business-hours slots are open.`;
+            return `\n\nAVAILABILITY: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Moncton' })}. No existing appointments in the next 2 weeks. Available hours: Mon/Tue/Thu/Fri 9am-1pm, Wed 9am-6pm, Sat 10am-2pm. Sunday CLOSED.`;
         }
 
         const booked = data.records.map(r => {
@@ -143,7 +143,7 @@ async function getAvailability() {
             return `${d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'America/Moncton' })} ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Moncton' })} (${dur}min)`;
         }).join('\n  - ');
 
-        return `\n\nAVAILABILITY: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Moncton' })}.\nAlready booked slots (DO NOT double-book these):\n  - ${booked}\nAll other business-hours slots (Mon-Fri 9am-6pm, Sat 10am-2pm) are available.`;
+        return `\n\nAVAILABILITY: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Moncton' })}.\nAlready booked slots (DO NOT double-book these):\n  - ${booked}\nAvailable hours: Mon/Tue/Thu/Fri 9am-1pm, Wed 9am-6pm, Sat 10am-2pm. Sunday CLOSED.`;
     } catch (e) {
         console.error('Availability fetch error:', e);
         return '';
@@ -155,11 +155,22 @@ async function createAppointment(input) {
     const airtableKey = process.env.AIRTABLE_API_KEY;
     if (!airtableKey) throw new Error('No Airtable key');
 
-    // Ensure Atlantic Time offset is included
+    // Compute correct Atlantic Time offset (AST=-04:00, ADT=-03:00)
     let dateStr = input.date;
-    if (dateStr && !dateStr.match(/[Zz]$/) && !dateStr.match(/[+-]\d{2}:\d{2}$/)) {
-        dateStr = dateStr + '-04:00'; // Atlantic Standard Time
-    }
+    // Strip any offset Claude may have added
+    dateStr = dateStr.replace(/[Zz]$/, '').replace(/[+-]\d{2}:\d{2}$/, '');
+    // Determine if date falls in DST (second Sunday of March to first Sunday of November)
+    const naiveDate = new Date(dateStr);
+    const year = naiveDate.getFullYear();
+    // Second Sunday of March
+    const marchFirst = new Date(year, 2, 1);
+    const dstStart = new Date(year, 2, 8 + (7 - marchFirst.getDay()) % 7, 2, 0, 0);
+    // First Sunday of November
+    const novFirst = new Date(year, 10, 1);
+    const dstEnd = new Date(year, 10, 1 + (7 - novFirst.getDay()) % 7, 2, 0, 0);
+    const isDST = naiveDate >= dstStart && naiveDate < dstEnd;
+    const offset = isDST ? '-03:00' : '-04:00';
+    dateStr = dateStr + offset;
 
     const fields = {
         Name: input.name,
@@ -318,14 +329,13 @@ exports.handler = async (event) => {
                 .join('');
 
             let toolResultContent;
+            let appointmentId = null;
             try {
-                const appointmentId = await createAppointment(toolUseBlock.input);
+                appointmentId = await createAppointment(toolUseBlock.input);
                 const apptDate = new Date(toolUseBlock.input.date);
                 const dateStr = apptDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Moncton' });
                 const timeStr = apptDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Moncton' });
                 toolResultContent = `Appointment successfully booked! ID: ${appointmentId}. ${toolUseBlock.input.type} for ${toolUseBlock.input.name} on ${dateStr} at ${timeStr}.`;
-                // Save transcript linked to this booking
-                await saveTranscript(appointmentId, anthropicMessages, 'Chatbot');
             } catch (bookingError) {
                 console.error('Booking error:', bookingError);
                 toolResultContent = `Booking failed: ${bookingError.message}. Please ask the customer to try again or contact us directly.`;
@@ -360,6 +370,12 @@ exports.handler = async (event) => {
                     .filter(b => b.type === 'text')
                     .map(b => b.text)
                     .join('');
+                // Save transcript with full conversation including confirmation
+                const fullConversation = [
+                    ...anthropicMessages,
+                    { role: 'assistant', content: reply || 'Appointment booked.' }
+                ];
+                await saveTranscript(appointmentId, fullConversation, 'Chatbot');
                 return {
                     statusCode: 200,
                     headers,
@@ -367,6 +383,8 @@ exports.handler = async (event) => {
                 };
             }
 
+            // Follow-up failed — still save transcript with what we have
+            await saveTranscript(appointmentId, anthropicMessages, 'Chatbot');
             return {
                 statusCode: 200,
                 headers,
