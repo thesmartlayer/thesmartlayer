@@ -567,6 +567,7 @@ async function deleteAppointment(id){
     if(ev)ev.remove();
     masterState.appointments=masterState.appointments.filter(function(a){return a.id!==id});
     updateStats();
+    renderActivityFeed();
     try{await fetch('/.netlify/functions/update-appointments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',id:id})})}
     catch(e){console.error('Delete failed:',e);loadAppointments()}
 }
