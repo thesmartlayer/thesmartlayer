@@ -164,17 +164,30 @@ async function createAppointment(input) {
     let dateStr = input.date;
     // Strip any offset Claude may have added
     dateStr = dateStr.replace(/[Zz]$/, '').replace(/[+-]\d{2}:\d{2}$/, '');
-    // Determine if date falls in DST (second Sunday of March to first Sunday of November)
-    const naiveDate = new Date(dateStr);
-    const year = naiveDate.getFullYear();
-    // Second Sunday of March
-    const marchFirst = new Date(year, 2, 1);
-    const dstStart = new Date(year, 2, 8 + (7 - marchFirst.getDay()) % 7, 2, 0, 0);
-    // First Sunday of November
-    const novFirst = new Date(year, 10, 1);
-    const dstEnd = new Date(year, 10, 1 + (7 - novFirst.getDay()) % 7, 2, 0, 0);
-    const isDST = naiveDate >= dstStart && naiveDate < dstEnd;
-    const offset = isDST ? '-03:00' : '-04:00';
+    // Determine DST: second Sunday of March 2am to first Sunday of November 2am
+    const parts = dateStr.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    let offset = '-04:00'; // fallback AST
+    if (parts) {
+        const year = parseInt(parts[1]);
+        const month = parseInt(parts[2]);
+        const day = parseInt(parts[3]);
+        // Second Sunday of March
+        const marchFirst = new Date(year, 2, 1);
+        const dstStartDay = 8 + (7 - marchFirst.getDay()) % 7;
+        // First Sunday of November
+        const novFirst = new Date(year, 10, 1);
+        const dstEndDay = 1 + (7 - novFirst.getDay()) % 7;
+        // Check if date falls in DST period
+        const dateNum = month * 100 + day; // simple MMDD comparison
+        const dstStartNum = 3 * 100 + dstStartDay; // March
+        const dstEndNum = 11 * 100 + dstEndDay; // November
+        if (dateNum > dstStartNum && dateNum < dstEndNum) {
+            offset = '-03:00'; // ADT
+        } else if (dateNum === dstStartNum || dateNum === dstEndNum) {
+            // On transition days, just use DST (close enough for booking)
+            offset = '-03:00';
+        }
+    }
     dateStr = dateStr + offset;
 
     const fields = {
@@ -371,9 +384,22 @@ exports.handler = async (event) => {
             let appointmentId = null;
             try {
                 appointmentId = await createAppointment(toolUseBlock.input);
-                const apptDate = new Date(toolUseBlock.input.date);
-                const dateStr = apptDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Moncton' });
-                const timeStr = apptDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Moncton' });
+                // Parse the naive date string directly (Claude sends local time like 2026-03-07T11:00:00)
+                const rawDate = toolUseBlock.input.date.replace(/[Zz]$/, '').replace(/[+-]\d{2}:\d{2}$/, '');
+                const dp = rawDate.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+                let dateStr, timeStr;
+                if (dp) {
+                    const d = new Date(parseInt(dp[1]), parseInt(dp[2])-1, parseInt(dp[3]));
+                    dateStr = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+                    const hr = parseInt(dp[4]);
+                    const mn = dp[5];
+                    const ampm = hr >= 12 ? 'PM' : 'AM';
+                    const hr12 = hr === 0 ? 12 : hr > 12 ? hr - 12 : hr;
+                    timeStr = hr12 + ':' + mn + ' ' + ampm;
+                } else {
+                    dateStr = 'the requested date';
+                    timeStr = 'the requested time';
+                }
                 toolResultContent = `Appointment successfully booked! ID: ${appointmentId}. ${toolUseBlock.input.type} for ${toolUseBlock.input.name} on ${dateStr} at ${timeStr}.`;
             } catch (bookingError) {
                 console.error('Booking error:', bookingError);
