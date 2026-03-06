@@ -207,10 +207,10 @@ async function createAppointment(input) {
     return data.records[0].id;
 }
 
-// Save chat transcript to Airtable
-async function saveTranscript(bookingId, messages, source) {
+// Save or update chat transcript in Airtable (upsert by sessionId)
+async function upsertTranscript(sessionId, messages, bookingId, source) {
     const airtableKey = process.env.AIRTABLE_API_KEY;
-    if (!airtableKey) return;
+    if (!airtableKey || !sessionId) return;
 
     try {
         // Build readable transcript
@@ -223,12 +223,46 @@ async function saveTranscript(bookingId, messages, source) {
             })
             .join('\n\n');
 
-        // Build summary from last few exchanges
+        // Build summary from last few user messages
         const lastMessages = messages.filter(m => m.role === 'user').slice(-3);
         const summary = lastMessages.map(m => typeof m.content === 'string' ? m.content : '').filter(Boolean).join(' | ');
 
+        // Check if transcript record already exists for this session
+        const findUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts?filterByFormula=${encodeURIComponent(`{transcript_id}='${sessionId}'`)}&maxRecords=1`;
+        const findResp = await fetch(findUrl, {
+            headers: { 'Authorization': `Bearer ${airtableKey}` }
+        });
+
+        if (findResp.ok) {
+            const findData = await findResp.json();
+            if (findData.records && findData.records.length > 0) {
+                // UPDATE existing record
+                const recordId = findData.records[0].id;
+                const updateFields = {
+                    full_transcript: transcript,
+                    summary: summary.slice(0, 500)
+                };
+                if (bookingId) updateFields.booking_id = bookingId;
+
+                const updateResp = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts/${recordId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${airtableKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ fields: updateFields })
+                });
+                if (!updateResp.ok) {
+                    const errText = await updateResp.text();
+                    console.error('Transcript update error:', errText);
+                }
+                return;
+            }
+        }
+
+        // CREATE new record
         const fields = {
-            transcript_id: 'chat-' + Date.now(),
+            transcript_id: sessionId,
             booking_id: bookingId || '',
             source: source || 'Chatbot',
             full_transcript: transcript,
@@ -236,7 +270,7 @@ async function saveTranscript(bookingId, messages, source) {
             created_at: new Date().toISOString()
         };
 
-        const resp = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts`, {
+        const createResp = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${airtableKey}`,
@@ -244,9 +278,9 @@ async function saveTranscript(bookingId, messages, source) {
             },
             body: JSON.stringify({ records: [{ fields }] })
         });
-        if (!resp.ok) {
-            const errText = await resp.text();
-            console.error('Transcript Airtable error:', errText);
+        if (!createResp.ok) {
+            const errText = await createResp.text();
+            console.error('Transcript create error:', errText);
         }
     } catch (e) {
         console.error('Transcript save error:', e);
@@ -279,7 +313,7 @@ exports.handler = async (event) => {
     }
 
     try {
-        const { messages } = JSON.parse(event.body);
+        const { messages, sessionId } = JSON.parse(event.body);
 
         const anthropicMessages = messages
             .filter(m => m.role === 'user' || m.role === 'assistant')
@@ -380,7 +414,7 @@ exports.handler = async (event) => {
                     ...anthropicMessages,
                     { role: 'assistant', content: reply || 'Appointment booked.' }
                 ];
-                await saveTranscript(appointmentId, fullConversation, 'Chatbot');
+                await upsertTranscript(sessionId, fullConversation, appointmentId, 'Chatbot');
                 return {
                     statusCode: 200,
                     headers,
@@ -389,7 +423,7 @@ exports.handler = async (event) => {
             }
 
             // Follow-up failed — still save transcript with what we have
-            await saveTranscript(appointmentId, anthropicMessages, 'Chatbot');
+            await upsertTranscript(sessionId, anthropicMessages, appointmentId, 'Chatbot');
             return {
                 statusCode: 200,
                 headers,
@@ -403,6 +437,8 @@ exports.handler = async (event) => {
                 .filter(b => b.type === 'text')
                 .map(b => b.text)
                 .join('');
+            const convWithReply = [...anthropicMessages, { role: 'assistant', content: textOnly || 'Appointment already booked.' }];
+            upsertTranscript(sessionId, convWithReply, null, 'Chatbot');
             return {
                 statusCode: 200,
                 headers,
@@ -415,6 +451,13 @@ exports.handler = async (event) => {
             .filter(b => b.type === 'text')
             .map(b => b.text)
             .join('') || "I'd love to help! Could you tell me a bit about your business?";
+
+        // Update transcript on every message
+        const conversationWithReply = [
+            ...anthropicMessages,
+            { role: 'assistant', content: reply }
+        ];
+        upsertTranscript(sessionId, conversationWithReply, null, 'Chatbot');
 
         return {
             statusCode: 200,
