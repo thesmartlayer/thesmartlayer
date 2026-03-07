@@ -464,7 +464,7 @@ exports.handler = async (event) => {
                 .map(b => b.text)
                 .join('');
             const convWithReply = [...anthropicMessages, { role: 'assistant', content: textOnly || 'Appointment already booked.' }];
-            upsertTranscript(sessionId, convWithReply, null, 'Chatbot');
+            await upsertTranscript(sessionId, convWithReply, null, 'Chatbot');
             return {
                 statusCode: 200,
                 headers,
@@ -483,7 +483,7 @@ exports.handler = async (event) => {
             ...anthropicMessages,
             { role: 'assistant', content: reply }
         ];
-        upsertTranscript(sessionId, conversationWithReply, null, 'Chatbot');
+        await upsertTranscript(sessionId, conversationWithReply, null, 'Chatbot');
 
         return {
             statusCode: 200,
