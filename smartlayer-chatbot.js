@@ -14,6 +14,7 @@
         const container = document.createElement('div');
         const chatWindow = document.createElement('div');
         let isOpen = false;
+        const sessionId = 'chat-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
         let messages = [
             { role: 'assistant', content: `Hey there! 👋 I'm the AI assistant for ${CONFIG.businessName}. What kind of business are you running?` }
         ];
@@ -85,7 +86,7 @@
                 const response = await fetch('/.netlify/functions/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: messages.filter(m => m.content !== '...') })
+                    body: JSON.stringify({ messages: messages.filter(m => m.content !== '...'), sessionId: sessionId })
                 });
                 const data = await response.json();
                 messages.pop();
