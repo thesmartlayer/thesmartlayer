@@ -1,7 +1,7 @@
 // netlify/functions/get-appointments.js
 // Reads Appointments table from Airtable for CEO dashboard calendar
 
-const BASE_ID = 'appoi3JJ82TuvnXwl';
+const BASE_ID = 'appI1VGevInWPeMRa';
 const TABLE_NAME = 'Appointments';
 
 exports.handler = async (event) => {

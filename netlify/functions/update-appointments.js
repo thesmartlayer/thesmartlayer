@@ -1,7 +1,7 @@
 // netlify/functions/update-appointments.js
 // Handles create, update (drag/drop), and delete for Appointments table
 
-const BASE_ID = 'appoi3JJ82TuvnXwl';
+const BASE_ID = 'appI1VGevInWPeMRa';
 const TABLE_NAME = 'Appointments';
 
 exports.handler = async (event) => {

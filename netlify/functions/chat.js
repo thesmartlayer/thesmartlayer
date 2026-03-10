@@ -2,7 +2,7 @@
 // Chatbot backend using Anthropic Claude API (Haiku 4.5)
 // Supports tool use for booking appointments via Airtable
 
-const AIRTABLE_BASE_ID = 'appoi3JJ82TuvnXwl';
+const AIRTABLE_BASE_ID = 'appI1VGevInWPeMRa';
 const AIRTABLE_TABLE = 'Appointments';
 
 const BOOKING_TOOL = {
