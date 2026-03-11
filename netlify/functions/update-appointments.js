@@ -15,90 +15,64 @@ exports.handler = async (event) => {
     try {
         const body = JSON.parse(event.body);
         const { action } = body;
+        const formattedDate = body.date ? `${body.date}-03:00` : ''; 
+        const duration = body.duration || 30; // Defaults to 30 mins if AI doesn't specify
 
-        // FIXED: Forces Moncton timezone offset (-03:00) instead of UTC (Z)
-        let formattedDate = body.date ? `${body.date}-03:00` : '';
-
-        // DELETE ACTION
-        if (action === 'delete') {
-            const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${body.id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}` }
-            });
-            if (!response.ok) throw new Error(`Delete failed: ${response.status}`);
-            return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
-        }
-
-        // CREATE ACTION
         if (action === 'create') {
-            // 1. CONFLICT CHECK
-            const checkUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?filterByFormula=IS_SAME({Date}, '${formattedDate}')`;
+            // OVERLAP LOGIC: Checks if (Existing Start < New End) AND (Existing End > New Start)
+            const filter = `AND(
+                IS_BEFORE({Date}, DATEADD(DATETIME_PARSE('${formattedDate}'), ${duration}, 'minutes')),
+                IS_AFTER(DATEADD({Date}, {Duration}, 'minutes'), DATETIME_PARSE('${formattedDate}'))
+            )`;
+
+            const checkUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?filterByFormula=${encodeURIComponent(filter)}`;
             const checkResponse = await fetch(checkUrl, {
                 headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}` }
             });
             const checkData = await checkResponse.json();
 
-            // 2. REJECT if slot is taken
             if (checkData.records && checkData.records.length > 0) {
-                return {
+                return { 
                     statusCode: 409, 
-                    headers,
-                    body: JSON.stringify({ error: 'That time slot is already taken.' })
+                    headers, 
+                    body: JSON.stringify({ error: 'This time slot overlaps with an existing appointment.' }) 
                 };
             }
 
-            // 3. PROCEED with booking
-            const fields = {
-                Name: body.name || '',
-                Date: formattedDate || '',
-                Phone: body.phone || '',
-                Email: body.email || '',
-                Duration: body.duration || 30,
-                Type: body.type || 'Consultation',
-                Status: 'Scheduled',
-                Source: body.source || 'Manual',
-                Notes: body.notes || ''
-            };
-
+            // PROCEED TO CREATE
             const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}`, {
                 method: 'POST',
                 headers: { 
                     'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`, 
                     'Content-Type': 'application/json' 
                 },
-                body: JSON.stringify({ records: [{ fields }] })
+                body: JSON.stringify({ 
+                    records: [{ 
+                        fields: { 
+                            Name: body.name, 
+                            Date: formattedDate, 
+                            Duration: duration,
+                            Phone: body.phone || '',
+                            Email: body.email || '',
+                            Status: 'Scheduled' 
+                        } 
+                    }] 
+                })
             });
 
-            if (!response.ok) throw new Error(`Create failed: ${response.status}`);
-            
-            const data = await response.json();
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({ success: true, id: data.records[0].id })
-            };
-        }
-
-        // UPDATE ACTION
-        if (action === 'update') {
-            const fields = {};
-            if (body.date) fields.Date = formattedDate;
-            if (body.name) fields.Name = body.name;
-            if (body.status) fields.Status = body.status;
-
-            const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${body.id}`, {
-                method: 'PATCH',
-                headers: { 
-                    'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`, 
-                    'Content-Type': 'application/json' 
-                },
-                body: JSON.stringify({ fields })
-            });
-            if (!response.ok) throw new Error(`Update failed: ${response.status}`);
+            if (!response.ok) throw new Error('Airtable creation failed');
             return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
         }
 
-        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid action.' }) };
+        if (action === 'delete') {
+            const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${body.id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}` }
+            });
+            return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
+        }
+
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid action' }) };
 
     } catch (error) {
         return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
