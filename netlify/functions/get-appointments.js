@@ -1,6 +1,4 @@
 // netlify/functions/get-appointments.js
-// Reads Appointments table from Airtable for CEO dashboard calendar
-
 const BASE_ID = 'appI1VGevInWPeMRa';
 const TABLE_NAME = 'Appointments';
 
@@ -11,52 +9,33 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json'
     };
 
-    if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 200, headers, body: '' };
-    }
+    if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
 
     try {
-        const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?sort%5B0%5D%5Bfield%5D=Date&sort%5B0%5D%5Bdirection%5D=asc`;
-
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
-                'Content-Type': 'application/json'
-            }
+        const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}`, {
+            headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}` }
         });
-
-        if (!response.ok) {
-            throw new Error(`Airtable error: ${response.status}`);
-        }
-
+        
         const data = await response.json();
-
-        const appointments = data.records.map(record => ({
-            id: record.id,
-            name: record.fields.Name || '',
-            date: record.fields.Date || '',
-            phone: record.fields.Phone || '',
-            email: record.fields.Email || '',
-            duration: record.fields.Duration || 30,
-            type: record.fields.Type || 'Consultation',
-            status: record.fields.Status || 'Scheduled',
-            source: record.fields.Source || '',
-            notes: record.fields.Notes || '',
-            created: record.createdTime
-        }));
+        
+        // 1. Filter out trash records (no date)
+        // 2. Clean the date string for the AI
+        // 3. Include duration so the AI understands overlaps
+        const cleanRecords = data.records
+            .filter(r => r.fields.Date) 
+            .map(r => ({
+                id: r.id,
+                name: r.fields.Name || 'Anonymous',
+                date: r.fields.Date.split('-03:00')[0], 
+                duration: r.fields.Duration || 30
+            }));
 
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ appointments })
+            body: JSON.stringify(cleanRecords)
         };
-
     } catch (error) {
-        console.error('Error fetching appointments:', error);
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({ error: 'Failed to fetch appointments' })
-        };
+        return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
     }
 };
