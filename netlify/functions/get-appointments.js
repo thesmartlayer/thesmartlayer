@@ -1,4 +1,3 @@
-// netlify/functions/get-appointments.js
 const BASE_ID = 'appI1VGevInWPeMRa';
 const TABLE_NAME = 'Appointments';
 
@@ -18,9 +17,6 @@ exports.handler = async (event) => {
         
         const data = await response.json();
         
-        // 1. Filter out trash records (no date)
-        // 2. Clean the date string for the AI
-        // 3. Include duration so the AI understands overlaps
         const cleanRecords = data.records
             .filter(r => r.fields.Date) 
             .map(r => ({
@@ -30,11 +26,7 @@ exports.handler = async (event) => {
                 duration: r.fields.Duration || 30
             }));
 
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify(cleanRecords)
-        };
+        return { statusCode: 200, headers, body: JSON.stringify(cleanRecords) };
     } catch (error) {
         return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
     }
