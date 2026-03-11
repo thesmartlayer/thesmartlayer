@@ -16,13 +16,13 @@ exports.handler = async (event) => {
         const body = JSON.parse(event.body);
         const { action } = body;
         const formattedDate = body.date ? `${body.date}-03:00` : ''; 
-        const duration = body.duration || 30; // Defaults to 30 mins if AI doesn't specify
+        const duration = body.duration || 30; 
 
         if (action === 'create') {
-            // OVERLAP LOGIC: Checks if (Existing Start < New End) AND (Existing End > New Start)
+            // Buffer logic: subtract/add 1 min so back-to-back (10:00-10:30 and 10:30-11:00) is allowed
             const filter = `AND(
-                IS_BEFORE({Date}, DATEADD(DATETIME_PARSE('${formattedDate}'), ${duration}, 'minutes')),
-                IS_AFTER(DATEADD({Date}, {Duration}, 'minutes'), DATETIME_PARSE('${formattedDate}'))
+                IS_BEFORE({Date}, DATEADD(DATETIME_PARSE('${formattedDate}'), ${duration - 1}, 'minutes')),
+                IS_AFTER(DATEADD({Date}, {Duration}, 'minutes'), DATEADD(DATETIME_PARSE('${formattedDate}'), 1, 'minutes'))
             )`;
 
             const checkUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?filterByFormula=${encodeURIComponent(filter)}`;
@@ -39,7 +39,6 @@ exports.handler = async (event) => {
                 };
             }
 
-            // PROCEED TO CREATE
             const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}`, {
                 method: 'POST',
                 headers: { 
@@ -49,7 +48,7 @@ exports.handler = async (event) => {
                 body: JSON.stringify({ 
                     records: [{ 
                         fields: { 
-                            Name: body.name, 
+                            Name: body.name || 'Unknown', 
                             Date: formattedDate, 
                             Duration: duration,
                             Phone: body.phone || '',
