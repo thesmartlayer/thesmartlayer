@@ -1,5 +1,7 @@
 // netlify/functions/update-appointments.js
-const BASE_ID = 'appI1VGevInWPeMRa'; // Confirm this matches your Smart Layer Base ID!
+// Handles create, update, and delete for Appointments table with conflict checking
+
+const BASE_ID = 'appI1VGevInWPeMRa'; 
 const TABLE_NAME = 'Appointments';
 
 exports.handler = async (event) => {
@@ -16,13 +18,13 @@ exports.handler = async (event) => {
         const body = JSON.parse(event.body);
         const { action } = body;
 
-        // Validation for the 'date' field to ensure Airtable likes it
+        // Ensure Date is in a format Airtable likes (ISO 8601)
         let formattedDate = body.date;
         if (formattedDate && !formattedDate.includes('Z') && !formattedDate.includes('+')) {
-            // If the AI sends 2026-03-11T11:00:00, we add a 'Z' to make it a valid ISO string
             formattedDate = `${formattedDate}Z`;
         }
 
+        // DELETE ACTION
         if (action === 'delete') {
             const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${body.id}`, {
                 method: 'DELETE',
@@ -32,7 +34,26 @@ exports.handler = async (event) => {
             return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
         }
 
+        // CREATE ACTION
         if (action === 'create') {
+            // 1. CONFLICT CHECK: See if someone is already booked at this exact time
+            const checkUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?filterByFormula=IS_SAME({Date}, '${formattedDate}')`;
+            const checkResponse = await fetch(checkUrl, {
+                headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}` }
+            });
+            const checkData = await checkResponse.json();
+
+            // 2. REJECT if slot is taken
+            if (checkData.records && checkData.records.length > 0) {
+                console.log(`Conflict detected for: ${formattedDate}`);
+                return {
+                    statusCode: 409, // Conflict
+                    headers,
+                    body: JSON.stringify({ error: 'That time slot is already taken.' })
+                };
+            }
+
+            // 3. PROCEED if slot is clear
             const fields = {
                 Name: body.name || '',
                 Date: formattedDate || '',
@@ -53,7 +74,7 @@ exports.handler = async (event) => {
                 },
                 body: JSON.stringify({ records: [{ fields }] })
             });
-            
+
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Airtable Error:', errorData);
@@ -61,10 +82,34 @@ exports.handler = async (event) => {
             }
             
             const data = await response.json();
-            return { statusCode: 200, headers, body: JSON.stringify({ success: true, id: data.records[0].id }) };
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ success: true, id: data.records[0].id })
+            };
         }
 
-        // ... (Keep the rest of your update logic the same, just use formattedDate for fields.Date)
+        // UPDATE ACTION (For dragging/dropping or editing existing ones)
+        if (action === 'update') {
+            const fields = {};
+            if (body.date) fields.Date = formattedDate;
+            if (body.name) fields.Name = body.name;
+            if (body.duration) fields.Duration = body.duration;
+            if (body.type) fields.Type = body.type;
+            if (body.status) fields.Status = body.status;
+            if (body.notes !== undefined) fields.Notes = body.notes;
+
+            const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${body.id}`, {
+                method: 'PATCH',
+                headers: { 
+                    'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`, 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ fields })
+            });
+            if (!response.ok) throw new Error(`Update failed: ${response.status}`);
+            return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
+        }
 
         return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid action.' }) };
 
