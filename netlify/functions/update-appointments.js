@@ -18,8 +18,8 @@ exports.handler = async (event) => {
         const formattedDate = body.date ? `${body.date}-03:00` : ''; 
         const duration = body.duration || 30; 
 
+        // --- CREATE ACTION ---
         if (action === 'create') {
-            // Buffer logic: subtract/add 1 min so back-to-back (10:00-10:30 and 10:30-11:00) is allowed
             const filter = `AND(
                 IS_BEFORE({Date}, DATEADD(DATETIME_PARSE('${formattedDate}'), ${duration - 1}, 'minutes')),
                 IS_AFTER(DATEADD({Date}, {Duration}, 'minutes'), DATEADD(DATETIME_PARSE('${formattedDate}'), 1, 'minutes'))
@@ -59,10 +59,34 @@ exports.handler = async (event) => {
                 })
             });
 
-            if (!response.ok) throw new Error('Airtable creation failed');
+            const data = await response.json();
+            return { statusCode: 200, headers, body: JSON.stringify({ success: true, id: data.records[0].id }) };
+        }
+
+        // --- UPDATE ACTION (To move/reschedule) ---
+        if (action === 'update') {
+            if (!body.id) throw new Error('Missing record ID for update.');
+
+            const fields = {};
+            if (body.date) fields.Date = formattedDate;
+            if (body.name) fields.Name = body.name;
+            if (body.status) fields.Status = body.status;
+            if (body.duration) fields.Duration = body.duration;
+
+            const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${body.id}`, {
+                method: 'PATCH',
+                headers: { 
+                    'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`, 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ fields })
+            });
+            
+            if (!response.ok) throw new Error('Update failed');
             return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
         }
 
+        // --- DELETE ACTION ---
         if (action === 'delete') {
             const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${body.id}`, {
                 method: 'DELETE',
