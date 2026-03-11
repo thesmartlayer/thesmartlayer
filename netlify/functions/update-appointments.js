@@ -1,6 +1,4 @@
 // netlify/functions/update-appointments.js
-// Handles create, update, and delete for Appointments table with conflict checking
-
 const BASE_ID = 'appI1VGevInWPeMRa'; 
 const TABLE_NAME = 'Appointments';
 
@@ -18,11 +16,8 @@ exports.handler = async (event) => {
         const body = JSON.parse(event.body);
         const { action } = body;
 
-        // Ensure Date is in a format Airtable likes (ISO 8601)
-        let formattedDate = body.date;
-        if (formattedDate && !formattedDate.includes('Z') && !formattedDate.includes('+')) {
-            formattedDate = `${formattedDate}Z`;
-        }
+        // FIXED: Forces Moncton timezone offset (-03:00) instead of UTC (Z)
+        let formattedDate = body.date ? `${body.date}-03:00` : '';
 
         // DELETE ACTION
         if (action === 'delete') {
@@ -36,7 +31,7 @@ exports.handler = async (event) => {
 
         // CREATE ACTION
         if (action === 'create') {
-            // 1. CONFLICT CHECK: See if someone is already booked at this exact time
+            // 1. CONFLICT CHECK
             const checkUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?filterByFormula=IS_SAME({Date}, '${formattedDate}')`;
             const checkResponse = await fetch(checkUrl, {
                 headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}` }
@@ -45,15 +40,14 @@ exports.handler = async (event) => {
 
             // 2. REJECT if slot is taken
             if (checkData.records && checkData.records.length > 0) {
-                console.log(`Conflict detected for: ${formattedDate}`);
                 return {
-                    statusCode: 409, // Conflict
+                    statusCode: 409, 
                     headers,
                     body: JSON.stringify({ error: 'That time slot is already taken.' })
                 };
             }
 
-            // 3. PROCEED if slot is clear
+            // 3. PROCEED with booking
             const fields = {
                 Name: body.name || '',
                 Date: formattedDate || '',
@@ -75,11 +69,7 @@ exports.handler = async (event) => {
                 body: JSON.stringify({ records: [{ fields }] })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Airtable Error:', errorData);
-                throw new Error(`Create failed: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`Create failed: ${response.status}`);
             
             const data = await response.json();
             return {
@@ -89,15 +79,12 @@ exports.handler = async (event) => {
             };
         }
 
-        // UPDATE ACTION (For dragging/dropping or editing existing ones)
+        // UPDATE ACTION
         if (action === 'update') {
             const fields = {};
             if (body.date) fields.Date = formattedDate;
             if (body.name) fields.Name = body.name;
-            if (body.duration) fields.Duration = body.duration;
-            if (body.type) fields.Type = body.type;
             if (body.status) fields.Status = body.status;
-            if (body.notes !== undefined) fields.Notes = body.notes;
 
             const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${body.id}`, {
                 method: 'PATCH',
@@ -114,7 +101,6 @@ exports.handler = async (event) => {
         return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid action.' }) };
 
     } catch (error) {
-        console.error('Function Error:', error.message);
         return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
     }
 };
