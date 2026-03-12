@@ -48,9 +48,8 @@ exports.handler = async (event) => {
         const transcripts = (data.records || []).map(r => ({
             id: r.id,
             transcript_id: r.fields.transcript_id || '',
-            // booking_id can be either a string or an array if it's a linked record field
             booking_id: Array.isArray(r.fields.booking_id) ? (r.fields.booking_id[0] || '') : (r.fields.booking_id || ''),
-            source: r.fields.source || '',
+            source: r.fields.Source || r.fields.source || '',
             full_transcript: r.fields.full_transcript || '',
             summary: r.fields.summary || '',
             created_at: r.fields.created_at || ''

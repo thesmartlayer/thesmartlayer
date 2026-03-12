@@ -253,10 +253,8 @@ async function upsertTranscript(sessionId, messages, bookingId, source) {
                 const recordId = findData.records[0].id;
                 const updateFields = {
                     full_transcript: transcript,
-                    summary: summary.slice(0, 500)
+                    Source: source || 'Chatbot'
                 };
-                // For linked record fields in Airtable, booking_id should be an array of record IDs.
-                // Using an array also works if booking_id is a plain text field.
                 if (bookingId) updateFields.booking_id = [bookingId];
 
                 const updateResp = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts/${recordId}`, {
@@ -275,16 +273,13 @@ async function upsertTranscript(sessionId, messages, bookingId, source) {
             }
         }
 
-        // CREATE new record
+        // CREATE new record — only fields that exist in your Transcripts table
         const fields = {
             transcript_id: sessionId,
-            // Store booking_id as an array of linked record IDs when present
-            booking_id: bookingId ? [bookingId] : '',
-            source: source || 'Chatbot',
-            full_transcript: transcript,
-            summary: summary.slice(0, 500),
-            created_at: new Date().toISOString()
+            Source: source || 'Chatbot',
+            full_transcript: transcript
         };
+        if (bookingId) fields.booking_id = [bookingId];
 
         const createResp = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts`, {
             method: 'POST',
@@ -296,7 +291,7 @@ async function upsertTranscript(sessionId, messages, bookingId, source) {
         });
         if (!createResp.ok) {
             const errText = await createResp.text();
-            console.error('Transcript create error:', errText);
+            console.error('Transcript create error:', createResp.status, errText);
         }
     } catch (e) {
         console.error('Transcript save error:', e);
