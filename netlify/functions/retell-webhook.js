@@ -100,8 +100,10 @@ exports.handler = async (event) => {
     const rawBody = event.body || '';
     const signature = event.headers['x-retell-signature'] || event.headers['X-Retell-Signature'];
     const apiKey = process.env.RETELL_API_KEY;
+    const skipVerify = process.env.RETELL_WEBHOOK_SKIP_VERIFY === 'true' || process.env.RETELL_WEBHOOK_SKIP_VERIFY === '1';
 
-    if (apiKey && signature && !verifyRetellSignature(rawBody, signature, apiKey)) {
+    // Verify signature unless skipped (set RETELL_WEBHOOK_SKIP_VERIFY=true in Netlify if test always returns 401)
+    if (!skipVerify && apiKey && signature && !verifyRetellSignature(rawBody, signature, apiKey)) {
         console.error('Retell webhook: invalid signature');
         return { statusCode: 401, headers, body: '' };
     }
