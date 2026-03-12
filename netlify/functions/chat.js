@@ -255,7 +255,9 @@ async function upsertTranscript(sessionId, messages, bookingId, source) {
                     full_transcript: transcript,
                     summary: summary.slice(0, 500)
                 };
-                if (bookingId) updateFields.booking_id = bookingId;
+                // For linked record fields in Airtable, booking_id should be an array of record IDs.
+                // Using an array also works if booking_id is a plain text field.
+                if (bookingId) updateFields.booking_id = [bookingId];
 
                 const updateResp = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts/${recordId}`, {
                     method: 'PATCH',
@@ -276,7 +278,8 @@ async function upsertTranscript(sessionId, messages, bookingId, source) {
         // CREATE new record
         const fields = {
             transcript_id: sessionId,
-            booking_id: bookingId || '',
+            // Store booking_id as an array of linked record IDs when present
+            booking_id: bookingId ? [bookingId] : '',
             source: source || 'Chatbot',
             full_transcript: transcript,
             summary: summary.slice(0, 500),
