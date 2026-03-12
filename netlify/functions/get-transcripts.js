@@ -25,7 +25,7 @@ exports.handler = async (event) => {
         const bookingId = event.queryStringParameters && event.queryStringParameters.booking_id;
 
         // Base URL sorted by created_at, newest first
-        let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?sort%5B0%5D%5Bfield%5D=created_at&sort%5B0%5D%5Bdirection%5D=desc&pageSize=20`;
+        let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?sort%5B0%5D%5Bfield%5D=created_at&sort%5B0%5D%5Bdirection%5D=desc&pageSize=50`;
 
         // If a bookingId is provided, find transcripts for that booking.
         // Exact match for text field; FIND for linked-record (id appears in field).
