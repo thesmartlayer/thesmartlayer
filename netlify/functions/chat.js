@@ -255,7 +255,7 @@ async function upsertTranscript(sessionId, messages, bookingId, source) {
                     full_transcript: transcript,
                     Source: source || 'Chatbot'
                 };
-                if (bookingId) updateFields.booking_id = [bookingId];
+                if (bookingId) updateFields.booking_id = bookingId;
 
                 const updateResp = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts/${recordId}`, {
                     method: 'PATCH',
@@ -279,7 +279,8 @@ async function upsertTranscript(sessionId, messages, bookingId, source) {
             Source: source || 'Chatbot',
             full_transcript: transcript
         };
-        if (bookingId) fields.booking_id = [bookingId];
+        // booking_id: use string (works for "Single line text"); use [bookingId] if your column is "Link to another record"
+        if (bookingId) fields.booking_id = bookingId;
 
         const createResp = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts`, {
             method: 'POST',

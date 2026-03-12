@@ -27,10 +27,11 @@ exports.handler = async (event) => {
         // Base URL sorted by created_at, newest first
         let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?sort%5B0%5D%5Bfield%5D=created_at&sort%5B0%5D%5Bdirection%5D=desc&pageSize=20`;
 
-        // If a bookingId is provided, prefer transcripts linked to that booking.
-        // Use ARRAYJOIN so this works whether booking_id is a text field or a linked-record array.
+        // If a bookingId is provided, find transcripts for that booking.
+        // Exact match for text field; FIND for linked-record (id appears in field).
         if (bookingId) {
-            const filter = `FIND('${bookingId}', ARRAYJOIN({booking_id}, ',')) > 0`;
+            const safeId = String(bookingId).replace(/'/g, "\\'");
+            const filter = `OR({booking_id}='${safeId}', FIND('${safeId}', ARRAYJOIN({booking_id}, ','))>0)`;
             url += `&filterByFormula=${encodeURIComponent(filter)}`;
         }
 
