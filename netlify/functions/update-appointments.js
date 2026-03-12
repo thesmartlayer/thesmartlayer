@@ -53,6 +53,9 @@ exports.handler = async (event) => {
                             Duration: duration,
                             Phone: body.phone || '',
                             Email: body.email || '',
+                            Type: body.type || 'Consultation',
+                            Notes: body.notes || '',
+                            Source: body.source || 'Manual',
                             Status: 'Scheduled' 
                         } 
                     }] 

@@ -623,13 +623,15 @@ function showEventPopup(event,jsEvent){
         var badgeColor=sc.includes('chat')||sc.includes('bot')?'#a855f7':sc.includes('retell')||sc.includes('phone')?'#3b82f6':sc.includes('web')?'#f59e0b':'#22c55e';
         srcBadge='<span class="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-md ml-1" style="background:'+badgeColor+'15;color:'+badgeColor+'">'+escapeHtml(p.source)+'</span>';
     }
-    // Show transcript button only for chatbot/retell sources
-    var showTranscriptBtn=(p.source&&(p.source.toLowerCase().includes('chat')||p.source.toLowerCase().includes('retell')));
-    // Look up summary from transcripts
-    var summaryLine='';
+    // Look up transcript linked to this appointment (by booking_id)
     var matchedTranscript=masterState.transcripts.find(function(t){return t.booking_id===currentPopupEventId});
+    // Show transcript button for chatbot/retell/phone source OR whenever we have a linked transcript (e.g. Retell call linked by phone but appointment shows Manual)
+    var showTranscriptBtn=(p.source&&(p.source.toLowerCase().includes('chat')||p.source.toLowerCase().includes('retell')||p.source.toLowerCase().includes('phone')))||matchedTranscript;
+    var summaryLine='';
     if(matchedTranscript&&matchedTranscript.summary){
         summaryLine='<div class="mt-2 mb-1 p-2 rounded-lg" style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.15)"><div class="text-[9px] font-bold uppercase tracking-widest text-ceo-purple mb-1">Summary</div><div class="text-[11px] text-ceo-textMuted leading-relaxed">'+escapeHtml(matchedTranscript.summary)+'</div></div>';
+    } else if(matchedTranscript){
+        summaryLine='<div class="mt-2 mb-1 p-2 rounded-lg" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2)"><div class="text-[9px] font-bold uppercase tracking-widest text-ceo-textMuted">Transcript</div><div class="text-[11px] text-ceo-textMuted">Call/chat transcript available — click below to view.</div></div>';
     }
     document.getElementById('eventPopupContent').innerHTML=
         '<div class="flex items-center justify-between mb-3"><span class="text-sm font-bold text-ceo-text">'+escapeHtml(event.title)+'</span><div>'+typeBadge+srcBadge+'</div></div>'+
