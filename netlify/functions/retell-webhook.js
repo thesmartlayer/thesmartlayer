@@ -1,131 +1,147 @@
 // netlify/functions/retell-webhook.js
-// Receives Retell call_ended / call_analyzed webhooks, saves transcript to Airtable,
-// and optionally links to an appointment by matching caller phone to recent bookings.
+// Receives Retell webhooks, saves transcript to Airtable Transcripts table,
+// links to most recent appointment, and sets Source to "Retell".
 //
-// Setup: In Retell dashboard (Account or Agent webhooks), set webhook URL to:
-//   https://YOUR-SITE.netlify.app/.netlify/functions/retell-webhook
-// Ensure RETELL_API_KEY and AIRTABLE_API_KEY (and optionally AIRTABLE_BASE_ID) are set in Netlify.
+// Webhook URL: https://thesmartlayer.com/.netlify/functions/retell-webhook
 
 const crypto = require('crypto');
-
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'appI1VGevInWPeMRa';
 
-function verifyRetellSignature(rawBody, signature, apiKey) {
+function verify(rawBody, signature, apiKey) {
     if (!signature || !apiKey) return false;
     try {
-        const hmac = crypto.createHmac('sha256', apiKey);
-        const digest = hmac.update(rawBody, 'utf8').digest('hex');
+        const digest = crypto.createHmac('sha256', apiKey).update(rawBody, 'utf8').digest('hex');
         return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(digest, 'hex'));
-    } catch (e) {
-        return false;
-    }
+    } catch (e) { return false; }
 }
 
-function normalizePhone(phone) {
-    if (!phone || typeof phone !== 'string') return '';
-    const digits = phone.replace(/\D/g, '');
-    return digits.slice(-10); // last 10 digits (handles +1 etc.)
+function normalizePhone(p) {
+    if (!p || typeof p !== 'string') return '';
+    return p.replace(/\D/g, '').slice(-10);
 }
 
-function phoneMatches(callerNorm, appointmentPhone) {
-    if (!callerNorm) return false;
-    const aptNorm = normalizePhone(String(appointmentPhone || ''));
-    if (aptNorm === callerNorm) return true;
-    // US: also match 1+10 vs 10
-    if (callerNorm.length === 10 && aptNorm === '1' + callerNorm) return true;
-    if (aptNorm.length === 10 && callerNorm === '1' + aptNorm) return true;
-    return false;
+async function airtableFetch(airtableKey, path, options) {
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${path}`;
+    const res = await fetch(url, {
+        ...options,
+        headers: {
+            'Authorization': `Bearer ${airtableKey}`,
+            'Content-Type': 'application/json',
+            ...(options && options.headers)
+        }
+    });
+    return res;
 }
 
-async function findAppointmentByPhone(airtableKey, fromNumber) {
-    const normalized = normalizePhone(fromNumber);
-    if (!normalized) return null;
+// Find the most recent appointment to link this call to.
+// Strategy 1: match by caller phone (for real phone calls)
+// Strategy 2: find most recently created appointment in last 30 min (for web calls with no phone)
+async function findAppointmentToLink(airtableKey, fromNumber) {
     try {
-        // Sort by createdTime desc so the most recently created appointment (e.g. just added after call) is found first
-        const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Appointments?sort%5B0%5D%5Bfield%5D=Date&sort%5B0%5D%5Bdirection%5D=desc&maxRecords=50`;
-        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${airtableKey}` } });
-        if (!res.ok) return null;
+        const res = await airtableFetch(airtableKey, 'Appointments?sort%5B0%5D%5Bfield%5D=Date&sort%5B0%5D%5Bdirection%5D=desc&maxRecords=50');
+        if (!res.ok) { console.error('findAppointment: Airtable error', res.status); return null; }
         const data = await res.json();
         let records = (data.records || []).filter(r => r.fields && r.fields.Date);
-        // Prefer most recently created (in case appointment was created after call_ended)
         records.sort((a, b) => (b.createdTime || '').localeCompare(a.createdTime || ''));
-        const match = records.find(r => phoneMatches(normalized, (r.fields.Phone || '').toString()));
-        return match ? match.id : null;
+
+        // Strategy 1: match by phone
+        const callerNorm = normalizePhone(fromNumber);
+        if (callerNorm) {
+            const phoneMatch = records.find(r => {
+                const aptNorm = normalizePhone(String(r.fields.Phone || ''));
+                return aptNorm === callerNorm;
+            });
+            if (phoneMatch) {
+                console.log('Matched appointment by phone:', phoneMatch.id);
+                return phoneMatch.id;
+            }
+        }
+
+        // Strategy 2: most recently created appointment (within last 30 min)
+        // This handles web calls where there's no from_number
+        const thirtyMinAgo = Date.now() - 30 * 60 * 1000;
+        const recentMatch = records.find(r => {
+            const created = new Date(r.createdTime).getTime();
+            return created > thirtyMinAgo;
+        });
+        if (recentMatch) {
+            console.log('Matched appointment by recency:', recentMatch.id);
+            return recentMatch.id;
+        }
+
+        console.log('No appointment match found');
+        return null;
     } catch (e) {
-        console.error('findAppointmentByPhone error:', e);
+        console.error('findAppointmentToLink error:', e);
         return null;
     }
 }
 
-async function setAppointmentSource(airtableKey, appointmentId, source) {
-    if (!airtableKey || !appointmentId) return;
+async function setAppointmentSource(airtableKey, appointmentId) {
     try {
-        const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Appointments/${appointmentId}`;
-        const res = await fetch(url, {
+        const res = await airtableFetch(airtableKey, `Appointments/${appointmentId}`, {
             method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${airtableKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ fields: { Source: source } })
+            body: JSON.stringify({ fields: { Source: 'Retell' } })
         });
-        if (!res.ok) {
-            const err = await res.text();
-            console.error('Retell set appointment source error:', res.status, err);
-        }
-    } catch (e) {
-        console.error('Retell set appointment source error:', e);
-    }
+        if (!res.ok) console.error('setAppointmentSource error:', res.status, await res.text());
+    } catch (e) { console.error('setAppointmentSource error:', e); }
 }
 
-async function saveRetellTranscript(airtableKey, callId, transcript, bookingId, fromNumber) {
+async function saveTranscript(airtableKey, callId, transcriptText, bookingId, fromNumber) {
     if (!airtableKey || !callId) return;
-    const transcriptText = typeof transcript === 'string' ? transcript : (transcript || '');
-    const callerPhone = fromNumber && String(fromNumber).replace(/\D/g, '').length >= 10 ? String(fromNumber) : null;
+
+    // Core fields that we KNOW exist in the table
+    const coreFields = {
+        transcript_id: callId,
+        Source: 'Retell',
+        full_transcript: transcriptText || '(No transcript)'
+    };
+    if (bookingId) coreFields.booking_id = bookingId;
 
     try {
-        // Upsert: avoid duplicate transcripts when both call_ended and call_analyzed fire
-        const findUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts?filterByFormula=${encodeURIComponent(`{transcript_id}='${String(callId).replace(/'/g, "\\'")}'`)}&maxRecords=1`;
-        const findRes = await fetch(findUrl, { headers: { 'Authorization': `Bearer ${airtableKey}` } });
+        // Check if record already exists (upsert to avoid duplicates from call_ended + call_analyzed)
+        const findRes = await airtableFetch(airtableKey,
+            `Transcripts?filterByFormula=${encodeURIComponent(`{transcript_id}='${String(callId).replace(/'/g, "\\'")}'`)}&maxRecords=1`);
+
         if (findRes.ok) {
             const findData = await findRes.json();
             if (findData.records && findData.records.length > 0) {
-                const recordId = findData.records[0].id;
-                const updateFields = {
-                    Source: 'Retell',
-                    full_transcript: transcriptText || '(No transcript)'
-                };
-                if (bookingId) updateFields.booking_id = bookingId;
-                if (callerPhone) updateFields.caller_phone = callerPhone;
-                const patchRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts/${recordId}`, {
+                // UPDATE existing
+                const patchRes = await airtableFetch(airtableKey, `Transcripts/${findData.records[0].id}`, {
                     method: 'PATCH',
-                    headers: { 'Authorization': `Bearer ${airtableKey}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fields: updateFields })
+                    body: JSON.stringify({ fields: coreFields })
                 });
-                if (!patchRes.ok) console.error('Retell transcript update error:', await patchRes.text());
-                if (bookingId) await setAppointmentSource(airtableKey, bookingId, 'Retell');
+                if (!patchRes.ok) console.error('Transcript update failed:', patchRes.status, await patchRes.text());
+                else console.log('Transcript updated:', findData.records[0].id);
+                if (bookingId) await setAppointmentSource(airtableKey, bookingId);
                 return;
             }
         }
 
-        const fields = {
-            transcript_id: callId,
-            Source: 'Retell',
-            full_transcript: transcriptText || '(No transcript)'
-        };
-        if (bookingId) fields.booking_id = bookingId;
-        if (callerPhone) fields.caller_phone = callerPhone;
-
-        const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts`;
-        const res = await fetch(url, {
+        // CREATE new
+        const createRes = await airtableFetch(airtableKey, 'Transcripts', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${airtableKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ records: [{ fields }] })
+            body: JSON.stringify({ records: [{ fields: coreFields }] })
         });
-        if (!res.ok) console.error('Retell transcript save error:', res.status, await res.text());
-        if (bookingId) await setAppointmentSource(airtableKey, bookingId, 'Retell');
+        if (!createRes.ok) {
+            console.error('Transcript create failed:', createRes.status, await createRes.text());
+        } else {
+            const createData = await createRes.json();
+            console.log('Transcript created:', createData.records && createData.records[0] && createData.records[0].id);
+
+            // Try to set caller_phone separately (won't break if column is missing)
+            if (fromNumber && createData.records && createData.records[0]) {
+                try {
+                    await airtableFetch(airtableKey, `Transcripts/${createData.records[0].id}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ fields: { caller_phone: String(fromNumber) } })
+                    });
+                } catch (e) { /* caller_phone column might not exist, that's OK */ }
+            }
+        }
+        if (bookingId) await setAppointmentSource(airtableKey, bookingId);
     } catch (e) {
-        console.error('Retell transcript save error:', e);
+        console.error('saveTranscript error:', e);
     }
 }
 
@@ -137,61 +153,52 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json'
     };
 
-    if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 204, headers, body: '' };
-    }
+    if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
 
-    // GET: so you can open the URL in a browser to confirm the function is deployed (no 404)
     if (event.httpMethod === 'GET') {
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({ ok: true, message: 'Retell webhook endpoint' })
-        };
+        return { statusCode: 200, headers, body: JSON.stringify({ ok: true, message: 'Retell webhook endpoint' }) };
     }
 
-    if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, headers, body: '' };
-    }
+    if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: '' };
 
     const rawBody = event.body || '';
     const signature = event.headers['x-retell-signature'] || event.headers['X-Retell-Signature'];
     const apiKey = process.env.RETELL_API_KEY;
     const skipVerify = process.env.RETELL_WEBHOOK_SKIP_VERIFY === 'true' || process.env.RETELL_WEBHOOK_SKIP_VERIFY === '1';
 
-    // Verify signature unless skipped (set RETELL_WEBHOOK_SKIP_VERIFY=true in Netlify if test always returns 401)
-    if (!skipVerify && apiKey && signature && !verifyRetellSignature(rawBody, signature, apiKey)) {
-        console.error('Retell webhook: invalid signature');
+    if (!skipVerify && apiKey && signature && !verify(rawBody, signature, apiKey)) {
+        console.error('Invalid webhook signature');
         return { statusCode: 401, headers, body: '' };
     }
 
     let payload;
-    try {
-        payload = JSON.parse(rawBody);
-    } catch (e) {
-        console.error('Retell webhook: invalid JSON');
-        return { statusCode: 400, headers, body: '' };
-    }
+    try { payload = JSON.parse(rawBody); }
+    catch (e) { return { statusCode: 400, headers, body: '' }; }
 
     const { event: eventType, call } = payload;
-    if (!call || !call.call_id) {
-        return { statusCode: 204, headers, body: '' };
-    }
+    console.log('Retell webhook received:', eventType, call && call.call_id, 'type:', call && call.call_type, 'from:', call && call.from_number);
 
-    // Save transcript when call ends or when analysis is ready (full transcript available)
+    if (!call || !call.call_id) return { statusCode: 204, headers, body: '' };
+
     if (eventType === 'call_ended' || eventType === 'call_analyzed') {
         const transcript = call.transcript || call.transcript_with_tool_calls;
         const transcriptStr = typeof transcript === 'string'
             ? transcript
-            : (Array.isArray(transcript) ? transcript.map(t => (t.role || t.type || '') + ': ' + (t.content || t.message || '')).join('\n\n') : '');
+            : (Array.isArray(transcript)
+                ? transcript.map(t => {
+                    const role = (t.role || '').replace('agent', 'AI Agent').replace('user', 'Caller');
+                    return role + ': ' + (t.content || t.message || t.words || '');
+                }).join('\n\n')
+                : '');
+
+        console.log('Transcript length:', transcriptStr.length, 'chars');
 
         const airtableKey = process.env.AIRTABLE_API_KEY;
         if (airtableKey) {
-            let bookingId = null;
-            if (call.from_number) {
-                bookingId = await findAppointmentByPhone(airtableKey, call.from_number);
-            }
-            await saveRetellTranscript(airtableKey, call.call_id, transcriptStr, bookingId, call.from_number);
+            const bookingId = await findAppointmentToLink(airtableKey, call.from_number || '');
+            await saveTranscript(airtableKey, call.call_id, transcriptStr, bookingId, call.from_number);
+        } else {
+            console.error('No AIRTABLE_API_KEY set');
         }
     }
 
