@@ -76,11 +76,21 @@ exports.handler = async (event) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, x-retell-signature',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+        'Content-Type': 'application/json'
     };
 
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 204, headers, body: '' };
+    }
+
+    // GET: so you can open the URL in a browser to confirm the function is deployed (no 404)
+    if (event.httpMethod === 'GET') {
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ ok: true, message: 'Retell webhook endpoint' })
+        };
     }
 
     if (event.httpMethod !== 'POST') {
