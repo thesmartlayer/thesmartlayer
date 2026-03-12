@@ -4,7 +4,7 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: "Method not allowed" };
   }
   const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
-  const BASE_ID = "appI1VGevInWPeMRa";
+  const BASE_ID = process.env.AIRTABLE_BASE_ID || "appI1VGevInWPeMRa";
   const TABLE = "Leads";
   try {
     const { id, status } = JSON.parse(event.body);

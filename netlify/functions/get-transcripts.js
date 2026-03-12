@@ -1,7 +1,7 @@
 // netlify/functions/get-transcripts.js
 // Fetches chat transcripts from Airtable, optionally filtered by booking_id
 
-const AIRTABLE_BASE_ID = 'appI1VGevInWPeMRa';
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'appI1VGevInWPeMRa';
 const AIRTABLE_TABLE = 'Transcripts';
 
 exports.handler = async (event) => {

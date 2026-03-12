@@ -1,4 +1,4 @@
-const BASE_ID = 'appI1VGevInWPeMRa';
+const BASE_ID = process.env.AIRTABLE_BASE_ID || 'appI1VGevInWPeMRa';
 const TABLE_NAME = 'Appointments';
 
 exports.handler = async (event) => {
