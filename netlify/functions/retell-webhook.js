@@ -43,6 +43,27 @@ async function findAppointmentByPhone(airtableKey, fromNumber) {
     }
 }
 
+async function setAppointmentSource(airtableKey, appointmentId, source) {
+    if (!airtableKey || !appointmentId) return;
+    try {
+        const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Appointments/${appointmentId}`;
+        const res = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${airtableKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ fields: { Source: source } })
+        });
+        if (!res.ok) {
+            const err = await res.text();
+            console.error('Retell set appointment source error:', res.status, err);
+        }
+    } catch (e) {
+        console.error('Retell set appointment source error:', e);
+    }
+}
+
 async function saveRetellTranscript(airtableKey, callId, transcript, bookingId) {
     if (!airtableKey || !callId) return;
     const transcriptText = typeof transcript === 'string' ? transcript : (transcript || '');
@@ -69,6 +90,10 @@ async function saveRetellTranscript(airtableKey, callId, transcript, bookingId) 
         }
     } catch (e) {
         console.error('Retell transcript save error:', e);
+    }
+    // So phone bookings show "Retell" instead of "Manual": update the linked appointment's Source
+    if (bookingId) {
+        await setAppointmentSource(airtableKey, bookingId, 'Retell');
     }
 }
 
