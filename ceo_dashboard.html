@@ -119,6 +119,24 @@
         .score-ring-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center;margin-top:6px}
         .analytics-section{padding:20px 24px;border-bottom:1px solid rgba(30,34,53,.4)}
         .analytics-section:last-child{border-bottom:none}
+        /* Nav active */
+        .nav-link.nav-active{background:rgba(34,197,94,.08);color:#e2e8f0}
+        .nav-link.nav-active i{color:#22c55e}
+        /* Client filter pills */
+        .client-filter-pill{background:transparent;border-color:#2a2f45;color:#7a8299;cursor:pointer}
+        .client-filter-pill:hover{border-color:#3a3f55;color:#e2e8f0}
+        .client-filter-pill.active{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#22c55e}
+        /* Client grid cards */
+        .client-grid-card{background:rgba(22,25,34,.7);border:1px solid rgba(30,34,53,.5);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s}
+        .client-grid-card:hover{border-color:rgba(34,197,94,.3);box-shadow:0 8px 32px rgba(0,0,0,.3);transform:translateY(-2px)}
+        /* Service toggle */
+        .svc-toggle{width:36px;height:20px;border-radius:10px;background:#2a2f45;cursor:pointer;position:relative;transition:background .2s;border:none;padding:0;flex-shrink:0}
+        .svc-toggle.active{background:#22c55e}
+        .svc-toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+        .svc-toggle.active::after{transform:translateX(16px)}
+        /* Progress bar */
+        .svc-progress-bar{height:6px;border-radius:3px;background:#1e2235;overflow:hidden}
+        .svc-progress-fill{height:100%;border-radius:3px;transition:width .4s ease}
         /* Toast */
         .toast{position:fixed;top:80px;right:24px;z-index:200;background:rgba(22,25,34,.95);border:1px solid rgba(34,197,94,.4);border-radius:12px;padding:16px 20px;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateX(120%);transition:transform .4s cubic-bezier(.16,1,.3,1);max-width:320px}
         .toast.show{transform:translateX(0)}
@@ -193,12 +211,12 @@ function escapeHtml(t){if(!t)return '';var d=document.createElement('div');d.tex
                 </div>
             </div>
         </div>
-        <nav class="px-3 py-4 space-y-1">
-            <a href="#" class="nav-active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-text"><i data-lucide="layout-dashboard" class="w-4 h-4 text-ceo-green"></i> Dashboard</a>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="users" class="w-4 h-4"></i> Clients</a>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="bot" class="w-4 h-4"></i> AI Agents</a>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="settings" class="w-4 h-4"></i> Settings</a>
+        <nav class="px-3 py-4 space-y-1" id="mainNav">
+            <a href="#" onclick="navigateTo('dashboard');return false" data-page="dashboard" class="nav-link nav-active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-text"><i data-lucide="layout-dashboard" class="w-4 h-4 text-ceo-green"></i> Dashboard</a>
+            <a href="#" onclick="navigateTo('clients');return false" data-page="clients" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="users" class="w-4 h-4"></i> Clients</a>
+            <a href="#" onclick="navigateTo('services');return false" data-page="services" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="package" class="w-4 h-4"></i> Services</a>
+            <a href="#" onclick="navigateTo('analytics');return false" data-page="analytics" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
+            <a href="#" onclick="navigateTo('settings');return false" data-page="settings" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ceo-textMuted hover:text-ceo-text hover:bg-ceo-card transition-all"><i data-lucide="settings" class="w-4 h-4"></i> Settings</a>
         </nav>
         <div class="px-5 py-2"><div class="border-t border-ceo-border"></div></div>
         <div class="px-4 space-y-3 flex-1">
@@ -249,8 +267,9 @@ function escapeHtml(t){if(!t)return '';var d=document.createElement('div');d.tex
         </header>
 
         <div class="flex-1 grid gap-0 main-grid" style="grid-template-columns:1fr 340px;">
-            <main class="p-6 overflow-y-auto space-y-6">
+            <main class="p-6 overflow-y-auto space-y-6" id="mainContent">
 
+                <section id="page-dashboard">
                 <!-- LEADS PIPELINE -->
                 <div class="glass-card p-5 animate-in" style="animation-delay:0.1s">
                     <div class="flex items-center justify-between mb-4">
@@ -304,6 +323,59 @@ function escapeHtml(t){if(!t)return '';var d=document.createElement('div');d.tex
                         </div>
                     </div>
                 </div>
+                </section>
+
+                <section id="page-clients" style="display:none">
+                    <div id="clientsListView">
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-lg bg-ceo-blue/10 flex items-center justify-center"><i data-lucide="users" class="w-5 h-5 text-ceo-blue"></i></div>
+                                <div><h2 class="text-lg font-bold text-ceo-text">Client Management</h2><p class="text-[11px] text-ceo-textMuted">Manage plans, services, and performance</p></div>
+                            </div>
+                            <button onclick="showAddClientForm()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-ceo-green text-white text-xs font-bold hover:bg-emerald-600 transition-colors"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Client</button>
+                        </div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <input type="text" id="clientSearch" placeholder="Search clients..." oninput="filterClientsList()" class="flex-1 bg-ceo-card border border-ceo-border rounded-lg px-4 py-2.5 text-xs text-ceo-text placeholder-ceo-textMuted focus:outline-none focus:border-ceo-green">
+                            <div class="flex gap-1" id="clientFilterPills">
+                                <button onclick="setClientFilter('all')" class="client-filter-pill active text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all">All</button>
+                                <button onclick="setClientFilter('Active')" class="client-filter-pill text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all">Active</button>
+                                <button onclick="setClientFilter('Demo')" class="client-filter-pill text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all">Demo</button>
+                                <button onclick="setClientFilter('Paused')" class="client-filter-pill text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all">Paused</button>
+                            </div>
+                        </div>
+                        <div class="grid gap-4" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))" id="clientsGrid">
+                            <p class="text-[11px] text-ceo-textMuted text-center py-8 col-span-full">Loading clients...</p>
+                        </div>
+                    </div>
+                    <div id="clientsDetailView" style="display:none">
+                        <div id="clientsDetailContent"></div>
+                    </div>
+                </section>
+
+                <section id="page-services" style="display:none">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-9 h-9 rounded-lg bg-ceo-purple/10 flex items-center justify-center"><i data-lucide="package" class="w-5 h-5 text-ceo-purple"></i></div>
+                        <div><h2 class="text-lg font-bold text-ceo-text">Service Delivery</h2><p class="text-[11px] text-ceo-textMuted">Track active services across all clients</p></div>
+                    </div>
+                    <div id="servicesContent"><p class="text-[11px] text-ceo-textMuted text-center py-8">Loading services...</p></div>
+                </section>
+
+                <section id="page-analytics" style="display:none">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-9 h-9 rounded-lg bg-ceo-green/10 flex items-center justify-center"><i data-lucide="bar-chart-3" class="w-5 h-5 text-ceo-green"></i></div>
+                        <div><h2 class="text-lg font-bold text-ceo-text">Business Analytics</h2><p class="text-[11px] text-ceo-textMuted">Revenue, growth, and performance metrics</p></div>
+                    </div>
+                    <div id="analyticsContent"><p class="text-[11px] text-ceo-textMuted text-center py-8">Loading analytics...</p></div>
+                </section>
+
+                <section id="page-settings" style="display:none">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-9 h-9 rounded-lg bg-ceo-orange/10 flex items-center justify-center"><i data-lucide="settings" class="w-5 h-5 text-ceo-orange"></i></div>
+                        <div><h2 class="text-lg font-bold text-ceo-text">Settings</h2><p class="text-[11px] text-ceo-textMuted">Account configuration</p></div>
+                    </div>
+                    <div class="glass-card p-8 text-center"><p class="text-sm text-ceo-textMuted">Settings coming soon.</p></div>
+                </section>
+
             </main>
 
             <!-- RIGHT PANEL -->
@@ -469,6 +541,47 @@ function togglePortfolio(){
     masterState.portfolioOpen=!masterState.portfolioOpen;
     if(masterState.portfolioOpen)sec.classList.remove('portfolio-collapsed');
     else sec.classList.add('portfolio-collapsed');
+}
+
+// ===== NAV ROUTING =====
+var currentPage='dashboard';
+var clientFilterStatus='all';
+
+var planPrices={'Starter':149,'Professional':249,'Complete':399,'Complete Plus':499,'Demo':0};
+var planServices={
+    'Starter':['Website_Live','Chatbot_Active','Portal_Active'],
+    'Professional':['Website_Live','Chatbot_Active','Portal_Active','Phone_Agent_Active'],
+    'Complete':['Website_Live','Chatbot_Active','Portal_Active','Phone_Agent_Active','AI_Visibility_Active'],
+    'Complete Plus':['Website_Live','Chatbot_Active','Portal_Active','Phone_Agent_Active','AI_Visibility_Active','Social_Media_Active','Review_Mgmt_Active'],
+    'Demo':['Website_Live','Chatbot_Active']
+};
+var serviceLabels={
+    'Website_Live':'Website Live','Chatbot_Active':'AI Chatbot','Portal_Active':'Customer Portal',
+    'Phone_Agent_Active':'Phone Agent','AI_Visibility_Active':'AI Visibility Reports',
+    'Social_Media_Active':'Social Media Mgmt','Review_Mgmt_Active':'Review Management'
+};
+var serviceIcons={
+    'Website_Live':'globe','Chatbot_Active':'bot','Portal_Active':'user-circle',
+    'Phone_Agent_Active':'phone','AI_Visibility_Active':'eye',
+    'Social_Media_Active':'share-2','Review_Mgmt_Active':'star'
+};
+var allServiceKeys=['Website_Live','Chatbot_Active','Portal_Active','Phone_Agent_Active','AI_Visibility_Active','Social_Media_Active','Review_Mgmt_Active'];
+
+function navigateTo(page){
+    currentPage=page;
+    var sections=document.querySelectorAll('[id^=page-]');
+    for(var i=0;i<sections.length;i++)sections[i].style.display='none';
+    var target=document.getElementById('page-'+page);
+    if(target)target.style.display='block';
+    var links=document.querySelectorAll('.nav-link');
+    for(var i=0;i<links.length;i++){
+        if(links[i].getAttribute('data-page')===page){links[i].classList.add('nav-active');links[i].classList.remove('text-ceo-textMuted')}
+        else{links[i].classList.remove('nav-active');links[i].classList.add('text-ceo-textMuted')}
+    }
+    if(page==='clients'){renderClientsPage();document.getElementById('clientsListView').style.display='block';document.getElementById('clientsDetailView').style.display='none'}
+    if(page==='services')renderServicesPage();
+    if(page==='analytics')renderAnalyticsPage();
+    lucide.createIcons();
 }
 
 // ===== LEADS =====
@@ -1223,6 +1336,398 @@ async function confirmDeleteClient(id,name){
         console.error('Delete client error:',e);
         showToast('Error','Could not delete client');
     }
+}
+
+// ===== CLIENTS PAGE =====
+function getServiceCount(c){
+    var count=0;
+    allServiceKeys.forEach(function(k){if(c[k.toLowerCase()]||c[k])count++});
+    return count;
+}
+
+function getServiceField(c,key){
+    return c[key]||c[key.toLowerCase()]||false;
+}
+
+function filterClientsList(){
+    renderClientsPage();
+}
+
+function setClientFilter(status){
+    clientFilterStatus=status;
+    var pills=document.querySelectorAll('.client-filter-pill');
+    for(var i=0;i<pills.length;i++){
+        if((status==='all'&&pills[i].textContent==='All')||pills[i].textContent===status)pills[i].classList.add('active');
+        else pills[i].classList.remove('active');
+    }
+    renderClientsPage();
+}
+
+function renderClientsPage(){
+    var clients=masterState.clients||[];
+    var search=(document.getElementById('clientSearch')?document.getElementById('clientSearch').value:'').toLowerCase();
+    var filtered=clients.filter(function(c){
+        if(clientFilterStatus!=='all'&&(c.status||'').toLowerCase()!==clientFilterStatus.toLowerCase())return false;
+        if(search&&!(c.name||'').toLowerCase().includes(search)&&!(c.industry||'').toLowerCase().includes(search)&&!(c.plan||'').toLowerCase().includes(search))return false;
+        return true;
+    });
+    var grid=document.getElementById('clientsGrid');
+    if(!grid)return;
+    if(!filtered.length){
+        grid.innerHTML='<div class="col-span-full text-center py-12"><p class="text-sm text-ceo-textMuted mb-3">No clients match your filter.</p><button onclick="showAddClientForm()" class="text-[11px] font-bold text-ceo-green hover:underline">+ Add a client</button></div>';
+        return;
+    }
+    grid.innerHTML=filtered.map(function(c){
+        var statusClass='client-status-'+(c.status||'active').toLowerCase();
+        var planColor=c.plan==='Starter'?'#22c55e':c.plan==='Professional'?'#3b82f6':c.plan==='Complete'||c.plan==='Complete Plus'?'#a855f7':'#7a8299';
+        var totalSvc=allServiceKeys.length;
+        var activeSvc=getServiceCount(c);
+        var pct=Math.round((activeSvc/totalSvc)*100);
+        var price=planPrices[c.plan]||0;
+        return '<div class="client-grid-card" onclick="showClientDetailPage(\''+c.id+'\')">'+
+            '<div class="flex items-center justify-between mb-3">'+
+                '<span class="text-sm font-bold text-ceo-text truncate">'+escapeHtml(c.name)+'</span>'+
+                '<span class="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-md '+statusClass+'">'+escapeHtml(c.status||'Active')+'</span>'+
+            '</div>'+
+            '<div class="flex items-center gap-2 mb-3 flex-wrap">'+
+                '<span class="text-[9px] font-bold px-2 py-0.5 rounded-md" style="background:'+planColor+'15;color:'+planColor+';border:1px solid '+planColor+'30">'+escapeHtml(c.plan||'No Plan')+'</span>'+
+                (c.industry?'<span class="text-[9px] font-bold px-2 py-0.5 rounded-md client-industry-badge">'+escapeHtml(c.industry)+'</span>':'')+
+                (price?'<span class="text-[9px] font-bold text-ceo-green">$'+price+'/mo</span>':'')+
+            '</div>'+
+            (c.url?'<div class="text-[10px] text-ceo-textMuted truncate mb-3"><i data-lucide="globe" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i>'+escapeHtml(c.url.replace(/^https?:\/\//,''))+'</div>':'')+
+            '<div class="mb-1 flex items-center justify-between"><span class="text-[9px] font-bold text-ceo-textMuted uppercase">Services</span><span class="text-[9px] font-bold text-ceo-text">'+activeSvc+'/'+totalSvc+'</span></div>'+
+            '<div class="svc-progress-bar"><div class="svc-progress-fill" style="width:'+pct+'%;background:'+(pct>=80?'#22c55e':pct>=50?'#eab308':'#ef4444')+'"></div></div>'+
+            '<div class="flex items-center gap-3 mt-3 pt-3 border-t border-ceo-border/30">'+
+                '<div class="text-center flex-1"><div class="text-sm font-black text-ceo-blue">'+(c.stats?c.stats.appointments:0)+'</div><div class="text-[8px] text-ceo-textMuted uppercase">Appts</div></div>'+
+                '<div class="text-center flex-1"><div class="text-sm font-black text-ceo-green">'+(c.stats?c.stats.leads:0)+'</div><div class="text-[8px] text-ceo-textMuted uppercase">Leads</div></div>'+
+                '<div class="text-center flex-1"><div class="text-sm font-black text-ceo-purple">'+(c.stats?c.stats.transcripts:0)+'</div><div class="text-[8px] text-ceo-textMuted uppercase">Calls</div></div>'+
+            '</div>'+
+        '</div>';
+    }).join('');
+    lucide.createIcons();
+}
+
+// ===== CLIENT DETAIL PAGE =====
+function showClientDetailPage(id){
+    var c=masterState.clients.find(function(x){return x.id===id});
+    if(!c)return;
+    document.getElementById('clientsListView').style.display='none';
+    document.getElementById('clientsDetailView').style.display='block';
+    var statusClass='client-status-'+(c.status||'active').toLowerCase();
+    var stats=c.stats||{};
+    var convRate=stats.leads>0?Math.round((stats.appointments/stats.leads)*100):0;
+    var price=planPrices[c.plan]||0;
+    var includedSvc=planServices[c.plan]||[];
+
+    var html='<button onclick="backToClientsList()" class="flex items-center gap-1.5 text-[11px] font-bold text-ceo-textMuted hover:text-ceo-text mb-4 transition-colors"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Clients</button>';
+
+    html+='<div class="glass-card mb-4 overflow-hidden">';
+    html+='<div class="p-5 border-b border-ceo-border/30">';
+    html+='<div class="flex items-center justify-between mb-2"><h3 class="text-lg font-bold text-ceo-text">'+escapeHtml(c.name)+'</h3>';
+    html+='<div class="flex gap-2">';
+    if(c.url)html+='<a href="'+escapeHtml(c.url)+'" target="_blank" class="px-3 py-1.5 rounded-lg bg-ceo-green/10 border border-ceo-green/20 text-ceo-green text-[10px] font-bold hover:bg-ceo-green/20 transition-colors">Open Site</a>';
+    html+='<button onclick="openEditClientForm(\''+c.id+'\')" class="px-3 py-1.5 rounded-lg bg-ceo-blue/10 border border-ceo-blue/20 text-ceo-blue text-[10px] font-bold hover:bg-ceo-blue/20 transition-colors">Edit</button>';
+    html+='</div></div>';
+    html+='<div class="flex items-center gap-2 flex-wrap">';
+    html+='<span class="text-[9px] font-bold uppercase px-2 py-1 rounded-md '+statusClass+'">'+escapeHtml(c.status||'Active')+'</span>';
+    if(c.industry)html+='<span class="text-[9px] font-bold uppercase px-2 py-1 rounded-md client-industry-badge">'+escapeHtml(c.industry)+'</span>';
+    if(c.plan)html+='<span class="text-[9px] font-bold uppercase px-2 py-1 rounded-md client-plan-badge">'+escapeHtml(c.plan)+' Plan</span>';
+    if(price)html+='<span class="text-[11px] font-bold text-ceo-green">$'+price+'/mo</span>';
+    html+='</div>';
+    html+='<div class="flex items-center gap-4 mt-3">';
+    if(c.contact)html+='<span class="text-[10px] text-ceo-textMuted"><i data-lucide="user" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i>'+escapeHtml(c.contact)+'</span>';
+    if(c.email)html+='<a href="mailto:'+escapeHtml(c.email)+'" class="text-[10px] text-ceo-blue hover:underline"><i data-lucide="mail" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i>'+escapeHtml(c.email)+'</a>';
+    if(c.phone)html+='<a href="tel:'+escapeHtml(c.phone)+'" class="text-[10px] text-ceo-blue hover:underline"><i data-lucide="phone" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i>'+escapeHtml(c.phone)+'</a>';
+    html+='</div></div>';
+
+    html+='<div class="grid grid-cols-4 gap-0 border-b border-ceo-border/30">';
+    html+='<div class="p-4 text-center border-r border-ceo-border/30"><div class="text-xl font-black text-ceo-blue">'+stats.appointments+'</div><div class="text-[8px] text-ceo-textMuted uppercase font-bold mt-1">Appointments</div></div>';
+    html+='<div class="p-4 text-center border-r border-ceo-border/30"><div class="text-xl font-black text-ceo-green">'+stats.leads+'</div><div class="text-[8px] text-ceo-textMuted uppercase font-bold mt-1">Leads</div></div>';
+    html+='<div class="p-4 text-center border-r border-ceo-border/30"><div class="text-xl font-black text-ceo-purple">'+stats.transcripts+'</div><div class="text-[8px] text-ceo-textMuted uppercase font-bold mt-1">Conversations</div></div>';
+    html+='<div class="p-4 text-center"><div class="text-xl font-black text-ceo-orange">'+convRate+'%</div><div class="text-[8px] text-ceo-textMuted uppercase font-bold mt-1">Conversion</div></div>';
+    html+='</div></div>';
+
+    html+='<div class="grid gap-4" style="grid-template-columns:1fr 1fr">';
+
+    html+='<div class="glass-card p-5">';
+    html+='<div class="flex items-center gap-2 mb-4"><i data-lucide="package" class="w-4 h-4 text-ceo-purple"></i><span class="text-xs font-bold text-ceo-text">Plan & Services</span></div>';
+    html+='<div class="space-y-3">';
+    allServiceKeys.forEach(function(key){
+        var isActive=getServiceField(c,key);
+        var isIncluded=includedSvc.indexOf(key)!==-1;
+        var label=serviceLabels[key]||key;
+        var icon=serviceIcons[key]||'check';
+        html+='<div class="flex items-center justify-between py-1">';
+        html+='<div class="flex items-center gap-2"><i data-lucide="'+icon+'" class="w-3.5 h-3.5 text-ceo-textMuted"></i><span class="text-[11px] text-ceo-text">'+label+'</span>';
+        if(isIncluded)html+='<span class="text-[8px] text-ceo-green font-bold uppercase">Included</span>';
+        html+='</div>';
+        html+='<button class="svc-toggle'+(isActive?' active':'')+'" onclick="toggleService(\''+c.id+'\',\''+key+'\','+(isActive?'false':'true')+')"></button>';
+        html+='</div>';
+    });
+    html+='</div></div>';
+
+    html+='<div class="glass-card p-5">';
+    html+='<div class="flex items-center gap-2 mb-3"><i data-lucide="bar-chart-3" class="w-4 h-4 text-ceo-blue"></i><span class="text-xs font-bold text-ceo-text">Source Breakdown</span></div>';
+    html+='<div id="clientDetailSourceArea"><div class="flex items-center gap-2"><span class="inline-block w-3 h-3 border-2 border-ceo-blue border-t-transparent rounded-full animate-spin"></span><span class="text-[10px] text-ceo-textMuted">Loading...</span></div></div>';
+    html+='</div>';
+
+    html+='</div>';
+
+    html+='<div class="glass-card p-5 mt-4">';
+    html+='<div class="flex items-center justify-between mb-3">';
+    html+='<div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-ceo-green"></i><span class="text-xs font-bold text-ceo-text">Site Health</span></div>';
+    if(c.url)html+='<button onclick="runPageSpeedDetail(\''+escapeHtml(c.url).replace(/'/g,"\\'")+'\')" id="psRunBtnDetail" class="text-[10px] font-bold text-ceo-green bg-ceo-green/10 border border-ceo-green/20 px-3 py-1 rounded-md hover:bg-ceo-green/20 transition-colors">Run Audit</button>';
+    html+='</div>';
+    html+='<div id="pageSpeedDetailArea"><p class="text-[10px] text-ceo-textMuted">Click "Run Audit" to check performance, SEO, accessibility, and best practices.</p></div>';
+    html+='</div>';
+
+    if(c.notes){
+        html+='<div class="glass-card p-5 mt-4">';
+        html+='<div class="text-[9px] font-bold uppercase tracking-widest text-ceo-textMuted mb-2">Notes</div>';
+        html+='<div class="text-[11px] text-ceo-textMuted leading-relaxed">'+escapeHtml(c.notes)+'</div>';
+        html+='</div>';
+    }
+
+    document.getElementById('clientsDetailContent').innerHTML=html;
+    lucide.createIcons();
+
+    if(c.base_id) loadClientDetailAnalytics(c.base_id);
+}
+
+function backToClientsList(){
+    document.getElementById('clientsDetailView').style.display='none';
+    document.getElementById('clientsListView').style.display='block';
+}
+
+function loadClientDetailAnalytics(baseId){
+    fetch('/.netlify/functions/get-client-analytics?base_id='+encodeURIComponent(baseId))
+    .then(function(r){return r.json()})
+    .then(function(data){
+        var area=document.getElementById('clientDetailSourceArea');
+        if(!area)return;
+        var sources=data.sourceBreakdown||{};
+        var total=(sources.Manual||0)+(sources.Chatbot||0)+(sources.Retell||0)+(sources.Other||0);
+        if(total===0){area.innerHTML='<p class="text-[10px] text-ceo-textMuted">No data yet.</p>';return}
+        function pct(n){return total>0?Math.round((n/total)*100):0}
+        function bar(label,count,color){
+            var w=pct(count);
+            return '<div class="flex items-center gap-3 mb-2"><span class="text-[10px] font-bold text-ceo-textMuted w-16 text-right">'+label+'</span><div class="flex-1 bg-ceo-card rounded-full h-2 overflow-hidden"><div class="source-bar h-full rounded-full" style="width:'+w+'%;background:'+color+'"></div></div><span class="text-[11px] font-bold text-ceo-text w-8">'+count+'</span><span class="text-[9px] text-ceo-textMuted w-8">'+w+'%</span></div>';
+        }
+        var html=bar('Manual',sources.Manual||0,'#22c55e')+bar('Chatbot',sources.Chatbot||0,'#a855f7')+bar('Retell',sources.Retell||0,'#3b82f6');
+        if(data.totals){
+            html+='<div class="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-ceo-border/30">';
+            html+='<div><div class="text-[9px] font-bold uppercase text-ceo-textMuted mb-1">Chatbot Chats</div><div class="text-sm font-black text-ceo-purple">'+data.totals.chatbotConversations+'</div></div>';
+            html+='<div><div class="text-[9px] font-bold uppercase text-ceo-textMuted mb-1">Phone Calls</div><div class="text-sm font-black text-ceo-blue">'+data.totals.retellCalls+'</div></div>';
+            html+='</div>';
+        }
+        area.innerHTML=html;
+    })
+    .catch(function(e){
+        var area=document.getElementById('clientDetailSourceArea');
+        if(area)area.innerHTML='<p class="text-[10px] text-ceo-red">Failed to load</p>';
+    });
+}
+
+function runPageSpeedDetail(url){
+    var area=document.getElementById('pageSpeedDetailArea');
+    var btn=document.getElementById('psRunBtnDetail');
+    if(!area)return;
+    if(btn){btn.textContent='Running...';btn.disabled=true}
+    area.innerHTML='<div class="flex items-center gap-2"><span class="inline-block w-4 h-4 border-2 border-ceo-green border-t-transparent rounded-full animate-spin"></span><span class="text-[10px] text-ceo-textMuted">Auditing site (15-30 seconds)...</span></div>';
+    fetch('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+encodeURIComponent(url)+'&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices')
+    .then(function(r){return r.json()})
+    .then(function(data){
+        if(data.error){area.innerHTML='<p class="text-[10px] text-ceo-red">'+escapeHtml(data.error.message||'Failed')+'</p>';if(btn){btn.textContent='Retry';btn.disabled=false}return}
+        var cats=data.lighthouseResult&&data.lighthouseResult.categories||{};
+        var scores={performance:Math.round((cats.performance&&cats.performance.score||0)*100),seo:Math.round((cats.seo&&cats.seo.score||0)*100),accessibility:Math.round((cats.accessibility&&cats.accessibility.score||0)*100),bestPractices:Math.round((cats['best-practices']&&cats['best-practices'].score||0)*100)};
+        function scoreColor(s){return s>=90?'#22c55e':s>=50?'#eab308':'#ef4444'}
+        function ring(label,score){var col=scoreColor(score);return '<div class="text-center"><div class="score-ring mx-auto" style="background:conic-gradient('+col+' '+score+'%, rgba(30,34,53,.5) '+score+'%)"><div class="score-ring-bg" style="background:#161922;width:56px;height:56px;border-radius:50%;margin:8px"></div><div class="score-ring-value" style="color:'+col+'">'+score+'</div></div><div class="score-ring-label text-ceo-textMuted mt-2">'+label+'</div></div>'}
+        area.innerHTML='<div class="grid grid-cols-4 gap-4">'+ring('Performance',scores.performance)+ring('SEO',scores.seo)+ring('Accessibility',scores.accessibility)+ring('Best Practices',scores.bestPractices)+'</div>';
+        if(btn){btn.textContent='Run Again';btn.disabled=false}
+    })
+    .catch(function(e){area.innerHTML='<p class="text-[10px] text-ceo-red">Audit failed.</p>';if(btn){btn.textContent='Retry';btn.disabled=false}});
+}
+
+async function toggleService(clientId,serviceKey,value){
+    var payload={action:'update',id:clientId};
+    payload[serviceKey.toLowerCase()]=value==='true'||value===true;
+    try{
+        await fetch('/.netlify/functions/update-clients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        var c=masterState.clients.find(function(x){return x.id===clientId});
+        if(c){c[serviceKey]=value==='true'||value===true;c[serviceKey.toLowerCase()]=value==='true'||value===true}
+        showClientDetailPage(clientId);
+        showToast('Service Updated','Service toggled successfully.');
+    }catch(e){
+        console.error('Toggle service error:',e);
+        showToast('Error','Could not update service');
+    }
+}
+
+// ===== ANALYTICS PAGE =====
+function renderAnalyticsPage(){
+    var clients=masterState.clients||[];
+    var activeClients=clients.filter(function(c){return c.status==='Active'||c.status==='Demo'});
+    var mrr=0;
+    var planCounts={'Starter':0,'Professional':0,'Complete':0,'Complete Plus':0,'Demo':0};
+    var statusCounts={'Active':0,'Demo':0,'Paused':0,'Churned':0};
+    var totalAppts=0,totalLeads=0,totalTranscripts=0;
+
+    clients.forEach(function(c){
+        var price=planPrices[c.plan]||0;
+        if(c.status==='Active')mrr+=price;
+        if(planCounts[c.plan]!==undefined)planCounts[c.plan]++;
+        if(statusCounts[c.status]!==undefined)statusCounts[c.status]++;
+        else statusCounts[c.status||'Active']=(statusCounts[c.status||'Active']||0)+1;
+        if(c.stats){totalAppts+=c.stats.appointments||0;totalLeads+=c.stats.leads||0;totalTranscripts+=c.stats.transcripts||0}
+    });
+
+    var area=document.getElementById('analyticsContent');
+    if(!area)return;
+
+    var html='<div class="grid gap-4 mb-4" style="grid-template-columns:repeat(4,1fr)">';
+    html+='<div class="glass-card p-5 text-center"><div class="text-2xl font-black text-ceo-green">$'+mrr.toLocaleString()+'</div><div class="text-[9px] text-ceo-textMuted uppercase font-bold mt-1">Monthly Revenue</div></div>';
+    html+='<div class="glass-card p-5 text-center"><div class="text-2xl font-black text-ceo-blue">'+clients.length+'</div><div class="text-[9px] text-ceo-textMuted uppercase font-bold mt-1">Total Clients</div></div>';
+    html+='<div class="glass-card p-5 text-center"><div class="text-2xl font-black text-ceo-purple">'+totalAppts+'</div><div class="text-[9px] text-ceo-textMuted uppercase font-bold mt-1">Total Appointments</div></div>';
+    html+='<div class="glass-card p-5 text-center"><div class="text-2xl font-black text-ceo-orange">'+totalLeads+'</div><div class="text-[9px] text-ceo-textMuted uppercase font-bold mt-1">Total Leads</div></div>';
+    html+='</div>';
+
+    html+='<div class="grid gap-4" style="grid-template-columns:1fr 1fr">';
+
+    html+='<div class="glass-card p-5">';
+    html+='<div class="flex items-center gap-2 mb-4"><i data-lucide="pie-chart" class="w-4 h-4 text-ceo-blue"></i><span class="text-xs font-bold text-ceo-text">Clients by Plan</span></div>';
+    var planColors={'Starter':'#22c55e','Professional':'#3b82f6','Complete':'#a855f7','Complete Plus':'#c084fc','Demo':'#7a8299'};
+    Object.keys(planCounts).forEach(function(plan){
+        var count=planCounts[plan];
+        var pct=clients.length>0?Math.round((count/clients.length)*100):0;
+        var col=planColors[plan]||'#7a8299';
+        var price=planPrices[plan]||0;
+        html+='<div class="flex items-center gap-3 mb-2">';
+        html+='<span class="text-[10px] font-bold text-ceo-textMuted w-24 text-right">'+plan+'</span>';
+        html+='<div class="flex-1 bg-ceo-card rounded-full h-2.5 overflow-hidden"><div class="source-bar h-full rounded-full" style="width:'+pct+'%;background:'+col+'"></div></div>';
+        html+='<span class="text-[11px] font-bold text-ceo-text w-6">'+count+'</span>';
+        if(price)html+='<span class="text-[9px] text-ceo-textMuted w-14">$'+price+'/mo</span>';
+        else html+='<span class="text-[9px] text-ceo-textMuted w-14">Free</span>';
+        html+='</div>';
+    });
+    html+='</div>';
+
+    html+='<div class="glass-card p-5">';
+    html+='<div class="flex items-center gap-2 mb-4"><i data-lucide="users" class="w-4 h-4 text-ceo-green"></i><span class="text-xs font-bold text-ceo-text">Clients by Status</span></div>';
+    var statusColors={'Active':'#22c55e','Demo':'#3b82f6','Paused':'#eab308','Churned':'#ef4444'};
+    Object.keys(statusCounts).forEach(function(s){
+        var count=statusCounts[s];
+        if(count===0)return;
+        var pct=clients.length>0?Math.round((count/clients.length)*100):0;
+        var col=statusColors[s]||'#7a8299';
+        html+='<div class="flex items-center gap-3 mb-2">';
+        html+='<span class="text-[10px] font-bold text-ceo-textMuted w-24 text-right">'+s+'</span>';
+        html+='<div class="flex-1 bg-ceo-card rounded-full h-2.5 overflow-hidden"><div class="source-bar h-full rounded-full" style="width:'+pct+'%;background:'+col+'"></div></div>';
+        html+='<span class="text-[11px] font-bold text-ceo-text w-6">'+count+'</span>';
+        html+='<span class="text-[9px] text-ceo-textMuted w-14">'+pct+'%</span>';
+        html+='</div>';
+    });
+    html+='</div>';
+
+    html+='</div>';
+
+    html+='<div class="glass-card p-5 mt-4">';
+    html+='<div class="flex items-center gap-2 mb-4"><i data-lucide="dollar-sign" class="w-4 h-4 text-ceo-green"></i><span class="text-xs font-bold text-ceo-text">Revenue by Client</span></div>';
+    var revenueClients=clients.filter(function(c){return (planPrices[c.plan]||0)>0&&c.status==='Active'}).sort(function(a,b){return (planPrices[b.plan]||0)-(planPrices[a.plan]||0)});
+    if(!revenueClients.length){
+        html+='<p class="text-[10px] text-ceo-textMuted">No paying clients yet.</p>';
+    }else{
+        revenueClients.forEach(function(c){
+            var price=planPrices[c.plan]||0;
+            var pct=mrr>0?Math.round((price/mrr)*100):0;
+            html+='<div class="flex items-center gap-3 mb-2">';
+            html+='<span class="text-[10px] font-bold text-ceo-text w-32 truncate text-right">'+escapeHtml(c.name)+'</span>';
+            html+='<div class="flex-1 bg-ceo-card rounded-full h-2.5 overflow-hidden"><div class="source-bar h-full rounded-full" style="width:'+pct+'%;background:#22c55e"></div></div>';
+            html+='<span class="text-[11px] font-bold text-ceo-green w-16">$'+price+'/mo</span>';
+            html+='</div>';
+        });
+    }
+    html+='</div>';
+
+    html+='<div class="glass-card p-5 mt-4">';
+    html+='<div class="flex items-center justify-between mb-3">';
+    html+='<div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-ceo-green"></i><span class="text-xs font-bold text-ceo-text">Your Site Health</span></div>';
+    html+='<button onclick="runPageSpeedAnalytics(\'https://thesmartlayer.com\')" id="psRunBtnAnalytics" class="text-[10px] font-bold text-ceo-green bg-ceo-green/10 border border-ceo-green/20 px-3 py-1 rounded-md hover:bg-ceo-green/20 transition-colors">Run Audit</button>';
+    html+='</div>';
+    html+='<div id="pageSpeedAnalyticsArea"><p class="text-[10px] text-ceo-textMuted">Click "Run Audit" to check thesmartlayer.com performance.</p></div>';
+    html+='</div>';
+
+    area.innerHTML=html;
+    lucide.createIcons();
+}
+
+function runPageSpeedAnalytics(url){
+    var area=document.getElementById('pageSpeedAnalyticsArea');
+    var btn=document.getElementById('psRunBtnAnalytics');
+    if(!area)return;
+    if(btn){btn.textContent='Running...';btn.disabled=true}
+    area.innerHTML='<div class="flex items-center gap-2"><span class="inline-block w-4 h-4 border-2 border-ceo-green border-t-transparent rounded-full animate-spin"></span><span class="text-[10px] text-ceo-textMuted">Auditing thesmartlayer.com...</span></div>';
+    fetch('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+encodeURIComponent(url)+'&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices')
+    .then(function(r){return r.json()})
+    .then(function(data){
+        if(data.error){area.innerHTML='<p class="text-[10px] text-ceo-red">'+escapeHtml(data.error.message||'Failed')+'</p>';if(btn){btn.textContent='Retry';btn.disabled=false}return}
+        var cats=data.lighthouseResult&&data.lighthouseResult.categories||{};
+        var scores={performance:Math.round((cats.performance&&cats.performance.score||0)*100),seo:Math.round((cats.seo&&cats.seo.score||0)*100),accessibility:Math.round((cats.accessibility&&cats.accessibility.score||0)*100),bestPractices:Math.round((cats['best-practices']&&cats['best-practices'].score||0)*100)};
+        function scoreColor(s){return s>=90?'#22c55e':s>=50?'#eab308':'#ef4444'}
+        function ring(label,score){var col=scoreColor(score);return '<div class="text-center"><div class="score-ring mx-auto" style="background:conic-gradient('+col+' '+score+'%, rgba(30,34,53,.5) '+score+'%)"><div class="score-ring-bg" style="background:#161922;width:56px;height:56px;border-radius:50%;margin:8px"></div><div class="score-ring-value" style="color:'+col+'">'+score+'</div></div><div class="score-ring-label text-ceo-textMuted mt-2">'+label+'</div></div>'}
+        area.innerHTML='<div class="grid grid-cols-4 gap-4">'+ring('Performance',scores.performance)+ring('SEO',scores.seo)+ring('Accessibility',scores.accessibility)+ring('Best Practices',scores.bestPractices)+'</div>';
+        if(btn){btn.textContent='Run Again';btn.disabled=false}
+    })
+    .catch(function(e){area.innerHTML='<p class="text-[10px] text-ceo-red">Audit failed.</p>';if(btn){btn.textContent='Retry';btn.disabled=false}});
+}
+
+// ===== SERVICES PAGE =====
+function renderServicesPage(){
+    var clients=masterState.clients||[];
+    var area=document.getElementById('servicesContent');
+    if(!area)return;
+
+    var html='<div class="grid gap-4" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">';
+    allServiceKeys.forEach(function(key){
+        var label=serviceLabels[key]||key;
+        var icon=serviceIcons[key]||'check';
+        var activeClients=clients.filter(function(c){return getServiceField(c,key)});
+        var inactiveClients=clients.filter(function(c){return !getServiceField(c,key)});
+        var pct=clients.length>0?Math.round((activeClients.length/clients.length)*100):0;
+        var col=pct>=80?'#22c55e':pct>=50?'#eab308':'#ef4444';
+
+        html+='<div class="glass-card p-5">';
+        html+='<div class="flex items-center gap-3 mb-3">';
+        html+='<div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:'+col+'15;border:1px solid '+col+'30"><i data-lucide="'+icon+'" class="w-5 h-5" style="color:'+col+'"></i></div>';
+        html+='<div><div class="text-sm font-bold text-ceo-text">'+label+'</div>';
+        html+='<div class="text-[10px] text-ceo-textMuted">'+activeClients.length+' of '+clients.length+' clients</div></div>';
+        html+='<div class="ml-auto text-xl font-black" style="color:'+col+'">'+pct+'%</div>';
+        html+='</div>';
+
+        html+='<div class="svc-progress-bar mb-3"><div class="svc-progress-fill" style="width:'+pct+'%;background:'+col+'"></div></div>';
+
+        if(activeClients.length>0){
+            html+='<div class="mb-2"><div class="text-[9px] font-bold text-ceo-green uppercase mb-1">Active</div><div class="flex flex-wrap gap-1">';
+            activeClients.forEach(function(c){
+                html+='<span class="text-[9px] font-bold px-2 py-0.5 rounded-md bg-ceo-green/10 text-ceo-green border border-ceo-green/20 cursor-pointer" onclick="navigateTo(\'clients\');setTimeout(function(){showClientDetailPage(\''+c.id+'\')},100)">'+escapeHtml(c.name)+'</span>';
+            });
+            html+='</div></div>';
+        }
+
+        if(inactiveClients.length>0){
+            html+='<div><div class="text-[9px] font-bold text-ceo-textMuted uppercase mb-1">Not Active</div><div class="flex flex-wrap gap-1">';
+            inactiveClients.forEach(function(c){
+                var included=(planServices[c.plan]||[]).indexOf(key)!==-1;
+                html+='<span class="text-[9px] font-bold px-2 py-0.5 rounded-md border cursor-pointer '+(included?'bg-ceo-yellow/10 text-ceo-yellow border-ceo-yellow/20':'bg-ceo-card text-ceo-textMuted border-ceo-border')+'" onclick="navigateTo(\'clients\');setTimeout(function(){showClientDetailPage(\''+c.id+'\')},100)">'+escapeHtml(c.name)+(included?' (included)':'')+'</span>';
+            });
+            html+='</div></div>';
+        }
+
+        html+='</div>';
+    });
+    html+='</div>';
+
+    area.innerHTML=html;
+    lucide.createIcons();
 }
 
 // ===== ACTIVITY FEED =====

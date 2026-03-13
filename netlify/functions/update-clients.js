@@ -32,6 +32,8 @@ exports.handler = async (event) => {
             if (body.phone) fields.Phone = body.phone;
             if (body.notes !== undefined) fields.Notes = body.notes || '';
             if (body.base_id !== undefined) fields.Base_ID = body.base_id || '';
+            const svcFields = ['Website_Live','Chatbot_Active','Phone_Agent_Active','AI_Visibility_Active','Social_Media_Active','Review_Mgmt_Active','Portal_Active'];
+            svcFields.forEach(k => { if (body[k] !== undefined || body[k.toLowerCase()] !== undefined) fields[k] = !!(body[k] !== undefined ? body[k] : body[k.toLowerCase()]); });
 
             const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE}`, {
                 method: 'POST',
@@ -60,6 +62,8 @@ exports.handler = async (event) => {
             if (body.phone !== undefined) fields.Phone = body.phone;
             if (body.notes !== undefined) fields.Notes = body.notes;
             if (body.base_id !== undefined) fields.Base_ID = body.base_id;
+            const svcFields = ['Website_Live','Chatbot_Active','Phone_Agent_Active','AI_Visibility_Active','Social_Media_Active','Review_Mgmt_Active','Portal_Active'];
+            svcFields.forEach(k => { if (body[k] !== undefined || body[k.toLowerCase()] !== undefined) fields[k] = !!(body[k] !== undefined ? body[k] : body[k.toLowerCase()]); });
 
             const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE}/${body.id}`, {
                 method: 'PATCH',

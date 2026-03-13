@@ -71,6 +71,13 @@ exports.handler = async (event) => {
                 phone: f.Phone || '',
                 notes: f.Notes || '',
                 base_id: clientBaseId,
+                Website_Live: !!f.Website_Live,
+                Chatbot_Active: !!f.Chatbot_Active,
+                Phone_Agent_Active: !!f.Phone_Agent_Active,
+                AI_Visibility_Active: !!f.AI_Visibility_Active,
+                Social_Media_Active: !!f.Social_Media_Active,
+                Review_Mgmt_Active: !!f.Review_Mgmt_Active,
+                Portal_Active: !!f.Portal_Active,
                 created: r.createdTime,
                 stats
             };
