@@ -90,13 +90,13 @@ async function setAppointmentSource(airtableKey, appointmentId) {
 async function saveTranscript(airtableKey, callId, transcriptText, bookingId, fromNumber) {
     if (!airtableKey || !callId) return;
 
-    // Core fields that we KNOW exist in the table
     const coreFields = {
         transcript_id: callId,
         Source: 'Retell',
         full_transcript: transcriptText || '(No transcript)'
     };
     if (bookingId) coreFields.booking_id = bookingId;
+    if (fromNumber) coreFields.caller_phone = String(fromNumber);
 
     try {
         // Check if record already exists (upsert to avoid duplicates from call_ended + call_analyzed)
@@ -128,16 +128,6 @@ async function saveTranscript(airtableKey, callId, transcriptText, bookingId, fr
         } else {
             const createData = await createRes.json();
             console.log('Transcript created:', createData.records && createData.records[0] && createData.records[0].id);
-
-            // Try to set caller_phone separately (won't break if column is missing)
-            if (fromNumber && createData.records && createData.records[0]) {
-                try {
-                    await airtableFetch(airtableKey, `Transcripts/${createData.records[0].id}`, {
-                        method: 'PATCH',
-                        body: JSON.stringify({ fields: { caller_phone: String(fromNumber) } })
-                    });
-                } catch (e) { /* caller_phone column might not exist, that's OK */ }
-            }
         }
         if (bookingId) await setAppointmentSource(airtableKey, bookingId);
     } catch (e) {

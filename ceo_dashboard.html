@@ -123,7 +123,7 @@
         /* Modal form */
         .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center}
         .modal-overlay.active{display:flex}
-        .modal-box{background:#161922;border:1px solid #2a2f45;border-radius:16px;padding:24px;width:400px;max-width:90vw}
+        .modal-box{background:#161922;border:1px solid #2a2f45;border-radius:16px;padding:24px;width:400px;max-width:90vw;max-height:85vh;overflow-y:auto}
         .modal-box label{display:block;font-size:11px;font-weight:700;color:#7a8299;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;margin-top:12px}
         .modal-box input,.modal-box select,.modal-box textarea{width:100%;padding:10px 12px;background:#0f1117;border:1px solid #2a2f45;border-radius:8px;color:#e2e8f0;font-size:13px;font-family:Inter,sans-serif}
         .modal-box input:focus,.modal-box select:focus,.modal-box textarea:focus{outline:none;border-color:#22c55e}
@@ -157,6 +157,8 @@ var masterState = {
 };
 
 var typeColors = { Consultation:'#22c55e', 'Follow-up':'#3b82f6', Onboarding:'#a855f7', Demo:'#f97316' };
+
+function normalizePhone(p){if(!p||typeof p!=='string')return '';return p.replace(/\D/g,'').slice(-10)}
 
 function formatCurrency(n){return '$'+n.toLocaleString('en-US')}
 function getGreeting(){var h=new Date().getHours();return h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening'}
@@ -692,9 +694,15 @@ function showEventPopup(event,jsEvent){
         var badgeColor=sc.includes('chat')||sc.includes('bot')?'#a855f7':sc.includes('retell')||sc.includes('phone')?'#3b82f6':sc.includes('web')?'#f59e0b':'#22c55e';
         srcBadge='<span class="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-md ml-1" style="background:'+badgeColor+'15;color:'+badgeColor+'">'+escapeHtml(p.source)+'</span>';
     }
-    // Look up transcript linked to this appointment (by booking_id)
     var matchedTranscript=masterState.transcripts.find(function(t){return t.booking_id===currentPopupEventId});
-    // Show transcript button for chatbot/retell/phone source OR whenever we have a linked transcript (e.g. Retell call linked by phone but appointment shows Manual)
+    if(!matchedTranscript&&p.phone){
+        var apptNorm=normalizePhone(p.phone);
+        if(apptNorm){
+            matchedTranscript=masterState.transcripts.find(function(t){
+                return t.caller_phone&&normalizePhone(t.caller_phone)===apptNorm;
+            });
+        }
+    }
     var showTranscriptBtn=(p.source&&(p.source.toLowerCase().includes('chat')||p.source.toLowerCase().includes('retell')||p.source.toLowerCase().includes('phone')))||matchedTranscript;
     var summaryLine='';
     if(matchedTranscript&&matchedTranscript.summary){
@@ -709,7 +717,7 @@ function showEventPopup(event,jsEvent){
         (p.email?'<div class="text-[11px] text-ceo-textMuted mb-1"><i data-lucide="mail" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i><a href="mailto:'+escapeHtml(p.email)+'" class="hover:text-ceo-blue">'+escapeHtml(p.email)+'</a></div>':'')+
         summaryLine+
         '<div class="mt-3"><label class="text-[9px] font-bold uppercase tracking-widest text-ceo-textMuted block mb-1">Notes</label><textarea id="popupNotes" rows="2" style="width:100%;background:#0f1117;border:1px solid #2a2f45;border-radius:8px;color:#e2e8f0;padding:8px 10px;font-size:11px;font-family:Inter,sans-serif;resize:vertical;outline:none" placeholder="Add notes...">'+escapeHtml(currentPopupOriginalNotes)+'</textarea></div>'+
-        (showTranscriptBtn?'<button onclick="loadTranscript(\''+currentPopupEventId+'\')" id="transcriptBtn" class="w-full mt-2 py-2 rounded-lg bg-ceo-purple/10 border border-ceo-purple/20 text-ceo-purple text-[11px] font-bold hover:bg-ceo-purple/20 transition-colors flex items-center justify-center gap-1.5"><i data-lucide="message-square-text" class="w-3.5 h-3.5"></i>View Chat Transcript</button>':'')+
+        (showTranscriptBtn?'<button onclick="loadTranscript(\''+currentPopupEventId+'\',\''+(p.phone||'').replace(/'/g,"\\'")+'\')" id="transcriptBtn" class="w-full mt-2 py-2 rounded-lg bg-ceo-purple/10 border border-ceo-purple/20 text-ceo-purple text-[11px] font-bold hover:bg-ceo-purple/20 transition-colors flex items-center justify-center gap-1.5"><i data-lucide="message-square-text" class="w-3.5 h-3.5"></i>View Chat Transcript</button>':'')+
         '<div id="transcriptArea" style="display:none" class="mt-2 p-3 rounded-lg bg-ceo-bg border border-ceo-border max-h-48 overflow-y-auto"><div id="transcriptContent" class="text-[11px] leading-relaxed"></div></div>'+
         '<div class="flex gap-2 mt-3"><button onclick="deleteAppointment(\''+event.id+'\')" class="flex-1 py-2 rounded-lg bg-ceo-red/10 border border-ceo-red/20 text-ceo-red text-[11px] font-bold hover:bg-ceo-red/20 transition-colors">Delete</button><button onclick="closeEventPopup()" class="flex-1 py-2 rounded-lg bg-ceo-card border border-ceo-border text-[11px] text-ceo-textMuted hover:text-ceo-text transition-colors">Close</button></div>';
     popup.style.display='block';overlay.style.display='block';
@@ -720,7 +728,7 @@ function showEventPopup(event,jsEvent){
     lucide.createIcons();
 }
 
-async function loadTranscript(bookingId){
+async function loadTranscript(bookingId,phone){
     var btn=document.getElementById('transcriptBtn');
     var area=document.getElementById('transcriptArea');
     var content=document.getElementById('transcriptContent');
@@ -729,14 +737,18 @@ async function loadTranscript(bookingId){
     try{
         var r=await fetch('/.netlify/functions/get-transcripts?booking_id='+encodeURIComponent(bookingId));
         var data=await r.json();
+        if((!data.transcripts||data.transcripts.length===0)&&phone){
+            r=await fetch('/.netlify/functions/get-transcripts?phone='+encodeURIComponent(phone));
+            data=await r.json();
+        }
         if(data.transcripts&&data.transcripts.length>0){
             var t=data.transcripts[0];
             var lines=t.full_transcript.split('\n').map(function(line){
                 line=line.trim();if(!line)return '';
-                if(line.startsWith('Customer:')){
-                    return '<div style="margin-bottom:8px"><span class="text-[9px] font-bold text-ceo-blue uppercase">Customer</span><div class="text-[11px] text-ceo-text mt-0.5">'+escapeHtml(line.replace('Customer: ',''))+'</div></div>';
-                }else if(line.startsWith('AI Assistant:')){
-                    return '<div style="margin-bottom:8px"><span class="text-[9px] font-bold text-ceo-purple uppercase">AI Assistant</span><div class="text-[11px] text-ceo-textMuted mt-0.5">'+escapeHtml(line.replace('AI Assistant: ',''))+'</div></div>';
+                if(line.startsWith('Customer:')||line.startsWith('Caller:')){
+                    return '<div style="margin-bottom:8px"><span class="text-[9px] font-bold text-ceo-blue uppercase">Caller</span><div class="text-[11px] text-ceo-text mt-0.5">'+escapeHtml(line.replace(/^(Customer|Caller): /,''))+'</div></div>';
+                }else if(line.startsWith('AI Assistant:')||line.startsWith('AI Agent:')){
+                    return '<div style="margin-bottom:8px"><span class="text-[9px] font-bold text-ceo-purple uppercase">AI Agent</span><div class="text-[11px] text-ceo-textMuted mt-0.5">'+escapeHtml(line.replace(/^(AI Assistant|AI Agent): /,''))+'</div></div>';
                 }
                 return '<div class="text-[11px] text-ceo-textMuted mb-1">'+escapeHtml(line)+'</div>';
             }).filter(Boolean).join('');

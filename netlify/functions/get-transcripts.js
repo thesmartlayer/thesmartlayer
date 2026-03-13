@@ -23,16 +23,20 @@ exports.handler = async (event) => {
 
     try {
         const bookingId = event.queryStringParameters && event.queryStringParameters.booking_id;
+        const phone = event.queryStringParameters && event.queryStringParameters.phone;
 
-        // Base URL sorted by created_at, newest first
         let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?sort%5B0%5D%5Bfield%5D=created_at&sort%5B0%5D%5Bdirection%5D=desc&pageSize=50`;
 
-        // If a bookingId is provided, find transcripts for that booking.
-        // Exact match for text field; FIND for linked-record (id appears in field).
         if (bookingId) {
             const safeId = String(bookingId).replace(/'/g, "\\'");
             const filter = `OR({booking_id}='${safeId}', FIND('${safeId}', ARRAYJOIN({booking_id}, ','))>0)`;
             url += `&filterByFormula=${encodeURIComponent(filter)}`;
+        } else if (phone) {
+            const digits = String(phone).replace(/\D/g, '').slice(-10);
+            if (digits.length >= 7) {
+                const filter = `FIND('${digits}', SUBSTITUTE({caller_phone}, '-', ''))>0`;
+                url += `&filterByFormula=${encodeURIComponent(filter)}`;
+            }
         }
 
         const response = await fetch(url, {
@@ -53,6 +57,7 @@ exports.handler = async (event) => {
             source: r.fields.Source || r.fields.source || '',
             full_transcript: r.fields.full_transcript || '',
             summary: r.fields.summary || '',
+            caller_phone: r.fields.caller_phone || '',
             created_at: r.fields.created_at || ''
         }));
 
