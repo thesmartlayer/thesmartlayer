@@ -1215,7 +1215,7 @@ function runPageSpeed(url){
     if(!area)return;
     if(btn){btn.textContent='Running...';btn.disabled=true}
     area.innerHTML='<div class="flex items-center gap-2"><span class="inline-block w-4 h-4 border-2 border-ceo-green border-t-transparent rounded-full animate-spin"></span><span class="text-[10px] text-ceo-textMuted">Auditing site (this takes 15-30 seconds)...</span></div>';
-    fetch('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+encodeURIComponent(url)+'&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices')
+    fetch('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+encodeURIComponent(url)+'&key=AIzaSyAeIduJ9CKVsrJTPCJpaBQxyKAt8ZrAAOg&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices')
     .then(function(r){return r.json()})
     .then(function(data){
         if(data.error){
@@ -1534,7 +1534,7 @@ function runPageSpeedDetail(url){
     if(!area)return;
     if(btn){btn.textContent='Running...';btn.disabled=true}
     area.innerHTML='<div class="flex items-center gap-2"><span class="inline-block w-4 h-4 border-2 border-ceo-green border-t-transparent rounded-full animate-spin"></span><span class="text-[10px] text-ceo-textMuted">Auditing site (15-30 seconds)...</span></div>';
-    fetch('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+encodeURIComponent(url)+'&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices')
+    fetch('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+encodeURIComponent(url)+'&key=AIzaSyAeIduJ9CKVsrJTPCJpaBQxyKAt8ZrAAOg&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices')
     .then(function(r){return r.json()})
     .then(function(data){
         if(data.error){area.innerHTML='<p class="text-[10px] text-ceo-red">'+escapeHtml(data.error.message||'Failed')+'</p>';if(btn){btn.textContent='Retry';btn.disabled=false}return}
@@ -1666,7 +1666,7 @@ function runPageSpeedAnalytics(url){
     if(!area)return;
     if(btn){btn.textContent='Running...';btn.disabled=true}
     area.innerHTML='<div class="flex items-center gap-2"><span class="inline-block w-4 h-4 border-2 border-ceo-green border-t-transparent rounded-full animate-spin"></span><span class="text-[10px] text-ceo-textMuted">Auditing thesmartlayer.com...</span></div>';
-    fetch('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+encodeURIComponent(url)+'&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices')
+    fetch('https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url='+encodeURIComponent(url)+'&key=AIzaSyAeIduJ9CKVsrJTPCJpaBQxyKAt8ZrAAOg&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices')
     .then(function(r){return r.json()})
     .then(function(data){
         if(data.error){area.innerHTML='<p class="text-[10px] text-ceo-red">'+escapeHtml(data.error.message||'Failed')+'</p>';if(btn){btn.textContent='Retry';btn.disabled=false}return}
