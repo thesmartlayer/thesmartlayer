@@ -95,7 +95,9 @@ async function saveTranscript(airtableKey, callId, transcriptText, bookingId, fr
         Source: 'Retell',
         full_transcript: transcriptText || '(No transcript)'
     };
-    if (bookingId) coreFields.booking_id = bookingId;
+    // booking_id may be a text field or linked-record field depending on base schema.
+    // If it looks like an Airtable record id, prefer linked-record shape.
+    if (bookingId) coreFields.booking_id = /^rec[a-zA-Z0-9]+$/.test(String(bookingId)) ? [bookingId] : bookingId;
     if (fromNumber) coreFields.caller_phone = String(fromNumber);
 
     try {
@@ -107,24 +109,55 @@ async function saveTranscript(airtableKey, callId, transcriptText, bookingId, fr
             const findData = await findRes.json();
             if (findData.records && findData.records.length > 0) {
                 // UPDATE existing
-                const patchRes = await airtableFetch(airtableKey, `Transcripts/${findData.records[0].id}`, {
+                let patchRes = await airtableFetch(airtableKey, `Transcripts/${findData.records[0].id}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ fields: coreFields })
                 });
-                if (!patchRes.ok) console.error('Transcript update failed:', patchRes.status, await patchRes.text());
-                else console.log('Transcript updated:', findData.records[0].id);
+                if (!patchRes.ok) {
+                    const errText = await patchRes.text();
+                    console.error('Transcript update failed:', patchRes.status, errText);
+                    // Fallback: retry without booking_id if field-type mismatch broke PATCH.
+                    if (bookingId) {
+                        const fallbackFields = { ...coreFields };
+                        delete fallbackFields.booking_id;
+                        patchRes = await airtableFetch(airtableKey, `Transcripts/${findData.records[0].id}`, {
+                            method: 'PATCH',
+                            body: JSON.stringify({ fields: fallbackFields })
+                        });
+                        if (!patchRes.ok) console.error('Transcript update fallback failed:', patchRes.status, await patchRes.text());
+                        else console.log('Transcript updated (fallback, no booking_id):', findData.records[0].id);
+                    }
+                } else {
+                    console.log('Transcript updated:', findData.records[0].id);
+                }
                 if (bookingId) await setAppointmentSource(airtableKey, bookingId);
                 return;
             }
         }
 
         // CREATE new
-        const createRes = await airtableFetch(airtableKey, 'Transcripts', {
+        let createRes = await airtableFetch(airtableKey, 'Transcripts', {
             method: 'POST',
             body: JSON.stringify({ records: [{ fields: coreFields }] })
         });
         if (!createRes.ok) {
-            console.error('Transcript create failed:', createRes.status, await createRes.text());
+            const errText = await createRes.text();
+            console.error('Transcript create failed:', createRes.status, errText);
+            // Fallback: retry without booking_id if schema mismatch on booking field.
+            if (bookingId) {
+                const fallbackFields = { ...coreFields };
+                delete fallbackFields.booking_id;
+                createRes = await airtableFetch(airtableKey, 'Transcripts', {
+                    method: 'POST',
+                    body: JSON.stringify({ records: [{ fields: fallbackFields }] })
+                });
+                if (!createRes.ok) {
+                    console.error('Transcript create fallback failed:', createRes.status, await createRes.text());
+                } else {
+                    const createData = await createRes.json();
+                    console.log('Transcript created (fallback, no booking_id):', createData.records && createData.records[0] && createData.records[0].id);
+                }
+            }
         } else {
             const createData = await createRes.json();
             console.log('Transcript created:', createData.records && createData.records[0] && createData.records[0].id);
