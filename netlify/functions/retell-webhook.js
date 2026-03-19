@@ -93,6 +93,45 @@ async function saveTranscript(airtableKey, callId, transcriptText, bookingId, fr
     if (fromNumber) coreFields.caller_phone = String(fromNumber);
 
     try {
+        const sourceErr = (txt) => String(txt || '').includes('INVALID_MULTIPLE_CHOICE_OPTIONS');
+        const bookingErr = (txt) => String(txt || '').includes('INVALID_VALUE_FOR_COLUMN') && String(txt || '').includes('booking_id');
+
+        async function tryCreateOrUpdate(path, method, baseFields) {
+            // Try progressively looser payloads so transcript still saves even with schema drift.
+            const attempts = [];
+            attempts.push({ ...baseFields });
+            // Try alternate booking_id shape for text-vs-linked schema differences.
+            if (baseFields.booking_id !== undefined) {
+                if (Array.isArray(baseFields.booking_id) && baseFields.booking_id[0]) {
+                    attempts.push(Object.assign({}, baseFields, { booking_id: String(baseFields.booking_id[0]) }));
+                } else if (typeof baseFields.booking_id === 'string' && baseFields.booking_id) {
+                    attempts.push(Object.assign({}, baseFields, { booking_id: [baseFields.booking_id] }));
+                }
+            }
+            if (baseFields.booking_id !== undefined) attempts.push(Object.assign({}, baseFields, { booking_id: undefined }));
+            if (baseFields.Source !== undefined) attempts.push(Object.assign({}, baseFields, { Source: undefined }));
+            if (baseFields.booking_id !== undefined && baseFields.Source !== undefined) {
+                attempts.push(Object.assign({}, baseFields, { booking_id: undefined, Source: undefined }));
+            }
+
+            for (const raw of attempts) {
+                const fields = {};
+                Object.keys(raw).forEach(k => { if (raw[k] !== undefined) fields[k] = raw[k]; });
+                const res = await airtableFetch(airtableKey, path, {
+                    method,
+                    body: JSON.stringify(method === 'POST' ? { records: [{ fields }] } : { fields })
+                });
+                if (res.ok) return { ok: true, res };
+                const errText = await res.text();
+                console.error(`Transcript ${method} failed:`, res.status, errText, 'fields:', Object.keys(fields).join(','));
+                if (!(sourceErr(errText) || bookingErr(errText))) {
+                    // Non-schema mismatch error; stop retrying.
+                    return { ok: false, res, errText };
+                }
+            }
+            return { ok: false, errText: 'All schema fallback attempts failed' };
+        }
+
         // Check if record already exists (upsert to avoid duplicates from call_ended + call_analyzed)
         const findRes = await airtableFetch(airtableKey,
             `Transcripts?filterByFormula=${encodeURIComponent(`{transcript_id}='${String(callId).replace(/'/g, "\\'")}'`)}&maxRecords=1`);
@@ -100,59 +139,21 @@ async function saveTranscript(airtableKey, callId, transcriptText, bookingId, fr
         if (findRes.ok) {
             const findData = await findRes.json();
             if (findData.records && findData.records.length > 0) {
-                // UPDATE existing
-                let patchRes = await airtableFetch(airtableKey, `Transcripts/${findData.records[0].id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ fields: coreFields })
-                });
-                if (!patchRes.ok) {
-                    const errText = await patchRes.text();
-                    console.error('Transcript update failed:', patchRes.status, errText);
-                    // Fallback: retry without booking_id if field-type mismatch broke PATCH.
-                    if (bookingId) {
-                        const fallbackFields = { ...coreFields };
-                        delete fallbackFields.booking_id;
-                        patchRes = await airtableFetch(airtableKey, `Transcripts/${findData.records[0].id}`, {
-                            method: 'PATCH',
-                            body: JSON.stringify({ fields: fallbackFields })
-                        });
-                        if (!patchRes.ok) console.error('Transcript update fallback failed:', patchRes.status, await patchRes.text());
-                        else console.log('Transcript updated (fallback, no booking_id):', findData.records[0].id);
-                    }
-                } else {
-                    console.log('Transcript updated:', findData.records[0].id);
-                }
+                // UPDATE existing with schema-aware fallbacks
+                const upd = await tryCreateOrUpdate(`Transcripts/${findData.records[0].id}`, 'PATCH', coreFields);
+                if (upd.ok) console.log('Transcript updated:', findData.records[0].id);
                 if (bookingId) await setAppointmentSource(airtableKey, bookingId);
                 return;
             }
         }
 
-        // CREATE new
-        let createRes = await airtableFetch(airtableKey, 'Transcripts', {
-            method: 'POST',
-            body: JSON.stringify({ records: [{ fields: coreFields }] })
-        });
-        if (!createRes.ok) {
-            const errText = await createRes.text();
-            console.error('Transcript create failed:', createRes.status, errText);
-            // Fallback: retry without booking_id if schema mismatch on booking field.
-            if (bookingId) {
-                const fallbackFields = { ...coreFields };
-                delete fallbackFields.booking_id;
-                createRes = await airtableFetch(airtableKey, 'Transcripts', {
-                    method: 'POST',
-                    body: JSON.stringify({ records: [{ fields: fallbackFields }] })
-                });
-                if (!createRes.ok) {
-                    console.error('Transcript create fallback failed:', createRes.status, await createRes.text());
-                } else {
-                    const createData = await createRes.json();
-                    console.log('Transcript created (fallback, no booking_id):', createData.records && createData.records[0] && createData.records[0].id);
-                }
-            }
-        } else {
-            const createData = await createRes.json();
+        // CREATE new with schema-aware fallbacks
+        const crt = await tryCreateOrUpdate('Transcripts', 'POST', coreFields);
+        if (crt.ok) {
+            const createData = await crt.res.json();
             console.log('Transcript created:', createData.records && createData.records[0] && createData.records[0].id);
+        } else {
+            console.error('Transcript create failed after fallbacks');
         }
         if (bookingId) await setAppointmentSource(airtableKey, bookingId);
     } catch (e) {
