@@ -4,18 +4,8 @@
 //
 // Webhook URL: https://thesmartlayer.com/.netlify/functions/retell-webhook
 
-const crypto = require('crypto');
+const { Retell } = require('retell-sdk');
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'appI1VGevInWPeMRa';
-
-function verify(rawBody, signature, apiKey) {
-    if (!signature || !apiKey) return false;
-    try {
-        // Retell signs JSON.stringify(parsed_body), not the raw string.
-        const normalized = JSON.stringify(JSON.parse(rawBody));
-        const digest = crypto.createHmac('sha256', apiKey).update(normalized, 'utf8').digest('hex');
-        return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(digest, 'hex'));
-    } catch (e) { return false; }
-}
 
 function normalizePhone(p) {
     if (!p || typeof p !== 'string') return '';
@@ -189,16 +179,29 @@ exports.handler = async (event) => {
     const rawBody = event.body || '';
     const signature = event.headers['x-retell-signature'] || event.headers['X-Retell-Signature'];
     const apiKey = process.env.RETELL_API_KEY;
-    const skipVerify = process.env.RETELL_WEBHOOK_SKIP_VERIFY === 'true' || process.env.RETELL_WEBHOOK_SKIP_VERIFY === '1';
-
-    if (!skipVerify && apiKey && signature && !verify(rawBody, signature, apiKey)) {
-        console.error('Invalid webhook signature');
-        return { statusCode: 401, headers, body: '' };
-    }
 
     let payload;
     try { payload = JSON.parse(rawBody); }
     catch (e) { return { statusCode: 400, headers, body: '' }; }
+
+    if (!apiKey) {
+        console.error('Missing RETELL_API_KEY for webhook verification');
+        return { statusCode: 500, headers, body: '' };
+    }
+    if (!signature) {
+        console.error('Missing x-retell-signature header');
+        return { statusCode: 401, headers, body: '' };
+    }
+    try {
+        const valid = await Retell.verify(JSON.stringify(payload), apiKey, signature);
+        if (!valid) {
+            console.error('Invalid webhook signature (Retell SDK verify)');
+            return { statusCode: 401, headers, body: '' };
+        }
+    } catch (e) {
+        console.error('Signature verification error:', e.message);
+        return { statusCode: 401, headers, body: '' };
+    }
 
     const { event: eventType, call } = payload;
     console.log('Retell webhook received:', eventType, call && call.call_id, 'type:', call && call.call_type, 'from:', call && call.from_number);
