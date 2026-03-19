@@ -10,7 +10,9 @@ const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'appI1VGevInWPeMRa';
 function verify(rawBody, signature, apiKey) {
     if (!signature || !apiKey) return false;
     try {
-        const digest = crypto.createHmac('sha256', apiKey).update(rawBody, 'utf8').digest('hex');
+        // Retell signs JSON.stringify(parsed_body), not the raw string.
+        const normalized = JSON.stringify(JSON.parse(rawBody));
+        const digest = crypto.createHmac('sha256', apiKey).update(normalized, 'utf8').digest('hex');
         return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(digest, 'hex'));
     } catch (e) { return false; }
 }
