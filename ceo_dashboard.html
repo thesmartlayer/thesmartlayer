@@ -373,7 +373,22 @@ function escapeHtml(t){if(!t)return '';var d=document.createElement('div');d.tex
                         <div class="w-9 h-9 rounded-lg bg-ceo-orange/10 flex items-center justify-center"><i data-lucide="settings" class="w-5 h-5 text-ceo-orange"></i></div>
                         <div><h2 class="text-lg font-bold text-ceo-text">Settings</h2><p class="text-[11px] text-ceo-textMuted">Account configuration</p></div>
                     </div>
-                    <div class="glass-card p-8 text-center"><p class="text-sm text-ceo-textMuted">Settings coming soon.</p></div>
+                    <div class="glass-card p-6">
+                        <div class="flex items-center gap-2 mb-4"><i data-lucide="bell" class="w-4 h-4 text-ceo-orange"></i><span class="text-xs font-bold text-ceo-text">Notification Preferences</span></div>
+                        <p class="text-[11px] text-ceo-textMuted mb-4">Get SMS and email alerts when a new appointment is booked (chatbot, Retell, or manual).</p>
+                        <div class="space-y-4 max-w-md">
+                            <div>
+                                <label class="text-[10px] font-bold uppercase tracking-widest text-ceo-textMuted block mb-1">Cell Phone (for SMS alerts)</label>
+                                <input type="tel" id="settingsAlertPhone" placeholder="+1 506 555 1234" class="w-full bg-ceo-card border border-ceo-border rounded-lg px-4 py-2.5 text-xs text-ceo-text placeholder-ceo-textMuted focus:outline-none focus:border-ceo-green">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold uppercase tracking-widest text-ceo-textMuted block mb-1">Email (for email alerts)</label>
+                                <input type="email" id="settingsAlertEmail" placeholder="you@example.com" class="w-full bg-ceo-card border border-ceo-border rounded-lg px-4 py-2.5 text-xs text-ceo-text placeholder-ceo-textMuted focus:outline-none focus:border-ceo-green">
+                            </div>
+                            <button onclick="saveNotificationSettings()" class="px-6 py-2.5 rounded-lg bg-ceo-green text-white text-xs font-bold hover:bg-emerald-600 transition-colors">Save Notification Settings</button>
+                        </div>
+                        <div id="settingsSaveStatus" class="mt-3 text-[11px] text-ceo-textMuted"></div>
+                    </div>
                 </section>
 
             </main>
@@ -581,6 +596,7 @@ function navigateTo(page){
     if(page==='clients'){renderClientsPage();document.getElementById('clientsListView').style.display='block';document.getElementById('clientsDetailView').style.display='none'}
     if(page==='services')renderServicesPage();
     if(page==='analytics')renderAnalyticsPage();
+    if(page==='settings')loadConfig();
     lucide.createIcons();
 }
 
@@ -1799,6 +1815,35 @@ function toggleDeepWork(){
     var toggle=document.getElementById('deepWorkToggle'),overlay=document.getElementById('deepWorkOverlay');
     if(masterState.deepWorkActive){toggle.classList.add('active');overlay.classList.add('active')}
     else{toggle.classList.remove('active');overlay.classList.remove('active')}
+}
+
+// ===== NOTIFICATION SETTINGS =====
+async function loadConfig(){
+    try{
+        var r=await fetch('/.netlify/functions/get-config');
+        var data=await r.json();
+        if(!r.ok){console.error('Load config error:',data.error||r.status);return}
+        var phone=document.getElementById('settingsAlertPhone');
+        var email=document.getElementById('settingsAlertEmail');
+        if(phone)phone.value=data.alert_phone||'';
+        if(email)email.value=data.alert_email||'';
+    }catch(e){console.error('Load config error:',e)}
+}
+
+async function saveNotificationSettings(){
+    var phone=document.getElementById('settingsAlertPhone');
+    var email=document.getElementById('settingsAlertEmail');
+    var status=document.getElementById('settingsSaveStatus');
+    if(!phone||!email||!status)return;
+    status.textContent='Saving...';
+    status.className='mt-3 text-[11px] text-ceo-textMuted';
+    try{
+        var r=await fetch('/.netlify/functions/update-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alert_phone:phone.value.trim(),alert_email:email.value.trim()})});
+        var data=await r.json();
+        if(data.error){status.textContent='Error: '+data.error;status.className='mt-3 text-[11px] text-ceo-red';return}
+        status.textContent='Saved successfully!';
+        status.className='mt-3 text-[11px] text-ceo-green';
+    }catch(e){status.textContent='Failed to save.';status.className='mt-3 text-[11px] text-ceo-red'}
 }
 
 // Auto-refresh every 60s
