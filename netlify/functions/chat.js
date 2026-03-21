@@ -2,7 +2,7 @@
 // Chatbot backend using Anthropic Claude API (Haiku 4.5)
 // Supports tool use for booking appointments via Airtable
 
-const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'appI1VGevInWPeMRa';
+const AIRTABLE_BASE_ID = 'appI1VGevInWPeMRa';
 const AIRTABLE_TABLE = 'Appointments';
 
 const BOOKING_TOOL = {
@@ -253,7 +253,7 @@ async function upsertTranscript(sessionId, messages, bookingId, source) {
                 const recordId = findData.records[0].id;
                 const updateFields = {
                     full_transcript: transcript,
-                    Source: source || 'Chatbot'
+                    summary: summary.slice(0, 500)
                 };
                 if (bookingId) updateFields.booking_id = bookingId;
 
@@ -273,14 +273,15 @@ async function upsertTranscript(sessionId, messages, bookingId, source) {
             }
         }
 
-        // CREATE new record — only fields that exist in your Transcripts table
+        // CREATE new record
         const fields = {
             transcript_id: sessionId,
-            Source: source || 'Chatbot',
-            full_transcript: transcript
+            booking_id: bookingId || '',
+            source: source || 'Chatbot',
+            full_transcript: transcript,
+            summary: summary.slice(0, 500),
+            created_at: new Date().toISOString()
         };
-        // booking_id: use string (works for "Single line text"); use [bookingId] if your column is "Link to another record"
-        if (bookingId) fields.booking_id = bookingId;
 
         const createResp = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Transcripts`, {
             method: 'POST',
@@ -292,7 +293,7 @@ async function upsertTranscript(sessionId, messages, bookingId, source) {
         });
         if (!createResp.ok) {
             const errText = await createResp.text();
-            console.error('Transcript create error:', createResp.status, errText);
+            console.error('Transcript create error:', errText);
         }
     } catch (e) {
         console.error('Transcript save error:', e);
@@ -400,6 +401,32 @@ exports.handler = async (event) => {
                     timeStr = 'the requested time';
                 }
                 toolResultContent = `Appointment successfully booked! ID: ${appointmentId}. ${toolUseBlock.input.type} for ${toolUseBlock.input.name} on ${dateStr} at ${timeStr}.`;
+                // Fire-and-forget push notification
+                try {
+                    // Compute Atlantic offset for notification date
+                    let notifOffset = '-04:00';
+                    if (dp) {
+                        const ny = parseInt(dp[1]), nm = parseInt(dp[2]), nd = parseInt(dp[3]);
+                        const mf = new Date(ny, 2, 1);
+                        const dsd = 8 + (7 - mf.getDay()) % 7;
+                        const nf = new Date(ny, 10, 1);
+                        const ded = 1 + (7 - nf.getDay()) % 7;
+                        const dn = nm * 100 + nd;
+                        if (dn > 3 * 100 + dsd && dn < 11 * 100 + ded) notifOffset = '-03:00';
+                        else if (dn === 3 * 100 + dsd || dn === 11 * 100 + ded) notifOffset = '-03:00';
+                    }
+                    const baseUrl = process.env.URL || 'https://thesmartlayer.com';
+                    fetch(`${baseUrl}/.netlify/functions/send-appointment-notification`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: toolUseBlock.input.name,
+                            date: rawDate + notifOffset,
+                            type: toolUseBlock.input.type || 'Consultation',
+                            source: 'Chatbot'
+                        })
+                    }).catch(e => console.error('Notification error:', e));
+                } catch (e) { console.error('Notification trigger error:', e); }
             } catch (bookingError) {
                 console.error('Booking error:', bookingError);
                 toolResultContent = `Booking failed: ${bookingError.message}. Please ask the customer to try again or contact us directly.`;
