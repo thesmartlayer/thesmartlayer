@@ -42,6 +42,32 @@ exports.handler = async (event) => {
       text: message
     });
 
+    // Log to Airtable Leads (non-blocking)
+    try {
+      const baseId = process.env.AIRTABLE_BASE_ID || 'appI1VGevInWPeMRa';
+      await fetch(`https://api.airtable.com/v0/${baseId}/Leads`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          records: [{
+            fields: {
+              Name: callerName,
+              Phone: callerPhone,
+              Email: callerEmail !== 'No email' ? callerEmail : '',
+              Source: 'Retell-Relay',
+              Status: 'New',
+              Notes: summary
+            }
+          }]
+        })
+      });
+    } catch (airtableErr) {
+      console.error('Airtable log failed (non-critical):', airtableErr);
+    }
+
     return {
       statusCode: 200,
       headers: { 'Access-Control-Allow-Origin': '*' },
