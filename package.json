@@ -18,7 +18,9 @@
     "url": "https://github.com/thesmartlayer/thesmartlayer/issues"
   },
   "homepage": "https://github.com/thesmartlayer/thesmartlayer#readme",
-  "dependencies": {
-    "retell-sdk": "^5.9.0"
+"dependencies": {
+    "resend": "^4.0.0",
+    "retell-sdk": "^5.9.0",
+    "twilio": "^5.0.0"
   }
 }
