@@ -2,163 +2,331 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Visibility Diagnostic | The Smart Layer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="Free AI Visibility Audit for New Brunswick businesses. Find out how your business appears in ChatGPT, Google AI, Siri, and Gemini.">
+    <title>Free AI Visibility Audit | The Smart Layer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --navy: #0a192f;
-            --orange: #ff8c00;
-            --cyan: #00f2ff;
-            --grey: #1e1e1e;
-            --white: #e6f1ff;
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background-color: var(--navy);
-            color: var(--white);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
+            background: #0a0c10;
+            color: #e2e8f0;
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
         }
 
-        .container {
-            width: 100%;
-            max-width: 600px;
-            padding: 40px 20px;
+        header {
+            padding: 1.5rem 2rem;
             text-align: center;
         }
 
+        header a {
+            text-decoration: none;
+        }
+
         .logo {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--orange);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #e2e8f0;
         }
 
-        h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-            border-bottom: 2px solid var(--orange);
-            display: inline-block;
-            padding-bottom: 10px;
+        .logo-accent {
+            color: #3b82f6;
         }
 
-        p.subtitle {
-            color: var(--cyan);
-            font-size: 1.1rem;
-            margin-bottom: 30px;
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 1.5rem 3rem;
         }
 
-        .diagnostic-box {
-            background: var(--grey);
-            border: 1px solid var(--orange);
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 0 20px rgba(255, 140, 0, 0.2);
-            text-align: left;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: var(--orange);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-        }
-
-        input[type="text"], input[type="url"], input[type="email"] {
+        .audit-card {
             width: 100%;
-            padding: 12px;
-            background: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 4px;
-            color: white;
-            box-sizing: border-box;
-            font-size: 1rem;
+            max-width: 520px;
         }
 
-        input:focus {
+        .audit-badge {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            color: #3b82f6;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 0.4rem 1rem;
+            border-radius: 100px;
+            margin-bottom: 1.5rem;
+        }
+
+        .audit-title {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+        }
+
+        .audit-subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .audit-highlights {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .highlight-tag {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            color: #cbd5e1;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.85rem;
+            border-radius: 6px;
+        }
+
+        .audit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input::placeholder {
+            color: #475569;
+        }
+
+        .form-group input:focus {
             outline: none;
-            border-color: var(--cyan);
-            box-shadow: 0 0 5px var(--cyan);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .consent-group {
+            margin-top: 0.25rem;
+        }
+
+        .consent-group label {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .consent-group input[type="checkbox"] {
+            margin-top: 0.2rem;
+            min-width: 16px;
+            accent-color: #3b82f6;
+        }
+
+        .consent-group a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .consent-group a:hover {
+            text-decoration: underline;
         }
 
         .btn-submit {
             width: 100%;
-            padding: 15px;
-            background: var(--orange);
+            padding: 0.85rem;
+            background: #3b82f6;
             border: none;
-            border-radius: 4px;
-            color: var(--navy);
-            font-size: 1.1rem;
-            font-weight: bold;
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
             cursor: pointer;
-            text-transform: uppercase;
-            transition: transform 0.2s, background 0.2s;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 0.5rem;
         }
 
         .btn-submit:hover {
-            background: #e67e00;
-            transform: translateY(-2px);
+            background: #2563eb;
+            transform: translateY(-1px);
         }
 
-        .footer {
-            margin-top: 40px;
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .audit-footer {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            color: #475569;
             font-size: 0.8rem;
-            color: #888;
         }
 
-        .footer a { color: var(--cyan); text-decoration: none; }
+        .audit-footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .audit-footer p {
+            margin-bottom: 0.3rem;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .success-message .check-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.15);
+            border: 2px solid rgba(34, 197, 94, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .success-message h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-message p {
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 480px) {
+            .audit-title { font-size: 1.6rem; }
+            .audit-card { padding: 0 0.25rem; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="logo">The Smart Layer</div>
-        <h1>AI Visibility Diagnostic</h1>
-        <p class="subtitle">Assigning an AI Mechanic for your 24-hour manual audit.</p>
+    <header>
+        <a href="/">
+            <div class="logo">THE SMART <span class="logo-accent">LAYER</span></div>
+        </a>
+    </header>
 
-        <div class="diagnostic-box">
-            <form action="#" method="POST">
+    <main>
+        <div class="audit-card">
+            <div class="audit-badge">Free — No Strings Attached</div>
+            <h1 class="audit-title">Is Your Business Invisible to AI?</h1>
+            <p class="audit-subtitle">We'll check how your business appears in ChatGPT, Google AI, Siri, and Gemini — then show you exactly what to fix. Results delivered within 24 hours.</p>
+
+            <div class="audit-highlights">
+                <span class="highlight-tag">Google Business Profile</span>
+                <span class="highlight-tag">SEO Analysis</span>
+                <span class="highlight-tag">AI Search Visibility</span>
+                <span class="highlight-tag">Competitor Comparison</span>
+            </div>
+
+            <form class="audit-form" id="audit-demo-form" name="audit-demo" method="POST" data-netlify="true">
+                <input type="hidden" name="form-name" value="audit-demo">
+
                 <div class="form-group">
-                    <label for="url">Business Property URL</label>
+                    <label for="url">Your Website URL</label>
                     <input type="url" id="url" name="url" placeholder="https://www.yourbusiness.com" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="rival">Top Local Rival</label>
-                    <input type="text" id="rival" name="rival" placeholder="e.g., Chipman Auto Care" required>
+                    <label for="rival">Top Local Competitor</label>
+                    <input type="text" id="rival" name="rival" placeholder="e.g., a competitor in your area" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="service">Core Service Focus</label>
-                    <input type="text" id="service" name="service" placeholder="e.g., Brake repair or Kids Martial Arts" required>
+                    <label for="service">Core Service</label>
+                    <input type="text" id="service" name="service" placeholder="e.g., Brake repair, Family dentistry, HVAC install" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="contact">Where should we send the report?</label>
-                    <input type="text" id="contact" name="contact" placeholder="Email or Phone Number" required>
+                    <label for="contact">Where Should We Send the Report?</label>
+                    <input type="text" id="contact" name="contact" placeholder="Email or phone number" required>
                 </div>
 
-                <button type="submit" class="btn-submit">Uplink Data & Begin Audit</button>
+                <div class="consent-group">
+                    <label>
+                        <input type="checkbox" name="sms-consent">
+                        <span>I agree to receive SMS messages and AI-powered calls from The Smart Layer. Message and data rates may apply. Reply STOP to opt out. <a href="/privacy.html" target="_blank">Privacy Policy</a></span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-submit">Start My Free Audit</button>
             </form>
-        </div>
 
-        <div class="footer">
-            <p>Serving Central New Brunswick’s Service Industry</p>
-            <p>Call or Text: <a href="tel:18554042424">(855) 404-AIAI (2424)</a></p>
+            <div class="success-message" id="success-message">
+                <div class="check-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <h2>Audit Requested!</h2>
+                <p>We're on it. Your personalized AI Visibility Report will be delivered within 24 hours. Keep an eye on your inbox.</p>
+            </div>
         </div>
+    </main>
+
+    <div class="audit-footer">
+        <p>Serving New Brunswick</p>
+        <p>Call or Text: <a href="tel:+18554042424">(855) 404-AIAI (2424)</a></p>
+        <p style="margin-top: 0.5rem;"><a href="/">thesmartlayer.com</a></p>
     </div>
+
+    <script>
+    document.getElementById('audit-demo-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var form = this;
+        var formData = new FormData(form);
+        fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(formData).toString()
+        }).then(function() {
+            form.style.display = 'none';
+            document.querySelector('.audit-highlights').style.display = 'none';
+            document.getElementById('success-message').style.display = 'block';
+        }).catch(function(err) {
+            console.error('Form error:', err);
+            alert('Something went wrong. Please call us at (855) 404-2424.');
+        });
+    });
+    </script>
 
 </body>
 </html>
