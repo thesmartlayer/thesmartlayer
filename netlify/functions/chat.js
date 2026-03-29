@@ -45,8 +45,9 @@ AI VISIBILITY AUDIT (FREE):
 PRICING (Founding Member Rates — locked in for early clients):
 - Starter: $149/month — Professional website, AI chatbot (24/7), customer portal, business dashboard, appointment booking, lead capture, mobile responsive, basic analytics, email support
 - Professional (Most Popular): $249/month — Everything in Starter PLUS AI phone assistant (24/7 voice agent), call transcripts, advanced analytics, SMS notifications, calendar integration, priority support, custom AI training
-- Complete: $399/month — Everything in Professional PLUS AI Visibility Monitoring (tracks how your business appears in AI search engines monthly), social media OR review management, advanced automation, multi-location support, dedicated account manager
-- ALL plans: First month FREE, no credit card required, free training, ongoing support, cancel anytime, no contracts
+- Complete: $399/month — Everything in Professional PLUS AI Visibility Monitoring (tracks how your business appears in AI search engines monthly), social media OR review management (your choice), advanced SMS follow-up, John as your direct point of contact for strategy
+- Complete Plus: $499/month — Everything in Complete PLUS Multi-Agent AI Office (specialized AI agents that warm-transfer between departments), social media AND review management (both included), priority feature beta access
+- ALL plans: First month FREE (includes website, AI chatbot, and AI phone agent), no credit card required, free training, ongoing support, cancel anytime with 30 days notice, no contracts
 - These are founding member rates — early clients lock in this price even when rates go up
 
 VALUE CONTEXT (use naturally, don't recite):
@@ -55,7 +56,8 @@ VALUE CONTEXT (use naturally, don't recite):
 - Our platform replaces 4-5 separate subscriptions in one
 
 SETUP:
-- Most businesses are live within 72 hours, though timelines may vary depending on complexity
+- Website and AI chatbot are typically live within 48-72 hours. AI phone agent training takes a few additional days. Full platform setup is usually complete within the first week.
+- Free trial starts when your website goes live
 - We handle all technical work
 - No technical skills needed from the client
 - Free training included
