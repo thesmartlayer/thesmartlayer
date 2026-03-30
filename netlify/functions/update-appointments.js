@@ -45,6 +45,68 @@ async function linkRetellTranscriptToAppointment(airtableKey, newAppointmentId, 
     }
 }
 
+function validateAppointmentTime(dateStr) {
+    if (!dateStr) return 'No date provided.';
+
+    // Strip offset for parsing, then rebuild as Atlantic Time
+    const clean = dateStr.replace(/[Zz]$/, '').replace(/[+-]\d{2}:\d{2}$/, '');
+    const parts = clean.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (!parts) return 'Invalid date format.';
+
+    const year = parseInt(parts[1]);
+    const month = parseInt(parts[2]);
+    const day = parseInt(parts[3]);
+    const hour = parseInt(parts[4]);
+    const minute = parseInt(parts[5]);
+
+    // Determine Atlantic offset (DST: second Sunday March to first Sunday November)
+    const marchFirst = new Date(year, 2, 1);
+    const dstStartDay = 8 + (7 - marchFirst.getDay()) % 7;
+    const novFirst = new Date(year, 10, 1);
+    const dstEndDay = 1 + (7 - novFirst.getDay()) % 7;
+    const dateNum = month * 100 + day;
+    const isDST = dateNum > (3 * 100 + dstStartDay) && dateNum < (11 * 100 + dstEndDay);
+    const offsetHours = isDST ? -3 : -4;
+
+    // Build a UTC date from the local Atlantic time to compare with now
+    const appointmentUTC = new Date(Date.UTC(year, month - 1, day, hour - offsetHours, minute));
+    if (appointmentUTC <= new Date()) {
+        return 'Cannot book appointments in the past.';
+    }
+
+    // Check day of week (0=Sun, 1=Mon, ... 6=Sat)
+    const localDate = new Date(year, month - 1, day);
+    const dow = localDate.getDay();
+    const timeDecimal = hour + minute / 60;
+
+    // Sunday — closed
+    if (dow === 0) return 'Sunday is not available for appointments.';
+
+    // Saturday: 10am-2pm (last slot 1:30, so end by 2pm)
+    if (dow === 6) {
+        if (timeDecimal < 10 || timeDecimal >= 14) {
+            return 'Saturday appointments are only available between 10:00 AM and 2:00 PM Atlantic.';
+        }
+        return null;
+    }
+
+    // Wednesday: 9am-6pm (last slot 5:30, so end by 6pm)
+    if (dow === 3) {
+        if (timeDecimal < 9 || timeDecimal >= 18) {
+            return 'Wednesday appointments are only available between 9:00 AM and 6:00 PM Atlantic.';
+        }
+        return null;
+    }
+
+    // Mon, Tue, Thu, Fri: 9am-1pm (last slot 12:30, so end by 1pm)
+    if (timeDecimal < 9 || timeDecimal >= 13) {
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        return `${dayNames[dow]} appointments are only available between 9:00 AM and 1:00 PM Atlantic.`;
+    }
+
+    return null;
+}
+
 exports.handler = async (event) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -63,6 +125,16 @@ exports.handler = async (event) => {
 
         // --- CREATE ACTION ---
         if (action === 'create') {
+            // Server-side validation: reject past dates and out-of-hours bookings
+            const validationError = validateAppointmentTime(body.date);
+            if (validationError) {
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ error: validationError })
+                };
+            }
+
             const filter = `AND(
                 IS_BEFORE({Date}, DATEADD(DATETIME_PARSE('${formattedDate}'), ${duration - 1}, 'minutes')),
                 IS_AFTER(DATEADD({Date}, {Duration}, 'minutes'), DATEADD(DATETIME_PARSE('${formattedDate}'), 1, 'minutes'))
