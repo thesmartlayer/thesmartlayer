@@ -26,6 +26,8 @@ exports.handler = async (event) => {
       phone: r.fields.Phone || "",
       email: r.fields.Email || "",
       source: r.fields.Source || "",
+      status: r.fields.Status || "",
+      notes: r.fields.Notes || "",
       created: r.createdTime,
     }));
     return {
