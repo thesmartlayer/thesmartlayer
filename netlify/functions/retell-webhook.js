@@ -79,14 +79,19 @@ async function setAppointmentSource(airtableKey, appointmentId) {
     } catch (e) { console.error('setAppointmentSource error:', e); }
 }
 
-async function saveTranscript(airtableKey, callId, transcriptText, bookingId, fromNumber) {
+async function saveTranscript(airtableKey, callId, transcriptText, bookingId, fromNumber, callMeta) {
     if (!airtableKey || !callId) return;
+    callMeta = callMeta || {};
 
     const coreFields = {
         transcript_id: callId,
         Source: 'Retell',
         full_transcript: transcriptText || '(No transcript)'
     };
+    if (callMeta.call_duration) coreFields.call_duration = callMeta.call_duration;
+    if (callMeta.call_type) coreFields.call_type = callMeta.call_type;
+    if (callMeta.disconnection_reason) coreFields.disconnection_reason = callMeta.disconnection_reason;
+    if (callMeta.sentiment) coreFields.sentiment = callMeta.sentiment;
     // booking_id may be a text field or linked-record field depending on base schema.
     // If it looks like an Airtable record id, prefer linked-record shape.
     if (bookingId) coreFields.booking_id = /^rec[a-zA-Z0-9]+$/.test(String(bookingId)) ? [bookingId] : bookingId;
@@ -225,7 +230,26 @@ exports.handler = async (event) => {
         const airtableKey = process.env.AIRTABLE_API_KEY;
         if (airtableKey) {
             const bookingId = await findAppointmentToLink(airtableKey, call.from_number || '');
-            await saveTranscript(airtableKey, call.call_id, transcriptStr, bookingId, call.from_number);
+
+            // Extract call metadata for analytics
+            var callDuration = null;
+            if (call.start_timestamp && call.end_timestamp) {
+                callDuration = Math.round((call.end_timestamp - call.start_timestamp) / 1000);
+            } else if (call.duration_ms) {
+                callDuration = Math.round(call.duration_ms / 1000);
+            }
+            var sentiment = '';
+            if (call.call_analysis && call.call_analysis.user_sentiment) {
+                sentiment = call.call_analysis.user_sentiment;
+            }
+            var callMeta = {
+                call_duration: callDuration,
+                call_type: call.call_type || '',
+                disconnection_reason: call.disconnection_reason || '',
+                sentiment: sentiment
+            };
+
+            await saveTranscript(airtableKey, call.call_id, transcriptStr, bookingId, call.from_number, callMeta);
         } else {
             console.error('No AIRTABLE_API_KEY set');
         }
