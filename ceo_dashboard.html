@@ -98,6 +98,14 @@
         .src-manual{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
         .src-website{background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.3)}
         .src-modified{background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.3)}
+        .src-audit{background:rgba(20,184,166,.15);color:#14b8a6;border:1px solid rgba(20,184,166,.3)}
+        .lead-notes-toggle{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:#7a8299;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;margin-top:6px;transition:color .2s}
+        .lead-notes-toggle:hover{color:#e2e8f0}
+        .lead-notes-toggle .chevron{display:inline-block;transition:transform .2s;font-size:8px}
+        .lead-notes-toggle.open .chevron{transform:rotate(90deg)}
+        .lead-notes-body{max-height:0;overflow:hidden;transition:max-height .3s ease;margin-top:0}
+        .lead-notes-body.open{max-height:200px;overflow-y:auto;margin-top:6px}
+        .lead-notes-text{font-size:10px;color:#94a3b8;line-height:1.5;padding:6px 8px;background:rgba(15,17,23,.5);border-radius:6px;white-space:pre-line}
         .activity-item{padding:10px 12px;border-radius:10px;background:rgba(22,25,34,.6);border:1px solid rgba(30,34,53,.4);transition:all .2s}
         .activity-item:hover{border-color:rgba(42,47,69,.8);background:rgba(22,25,34,.9)}
         /* Client cards */
@@ -647,13 +655,35 @@ function renderCards(leads,col){
         if(col==='new')btns='<button class="status-btn status-btn-contacted" onclick="moveLead(\''+l.id+'\',\'Contacted\')">Contacted</button><button class="status-btn status-btn-closed" onclick="moveLead(\''+l.id+'\',\'Closed\')">Close</button>';
         else if(col==='contacted')btns='<button class="status-btn status-btn-closed" onclick="moveLead(\''+l.id+'\',\'Closed\')">Close</button><button class="status-btn status-btn-reopen" onclick="moveLead(\''+l.id+'\',\'New\')">Reopen</button>';
         else btns='<button class="status-btn status-btn-reopen" onclick="moveLead(\''+l.id+'\',\'New\')">Reopen</button>';
-        var src=l.source?'<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-ceo-purple/10 text-ceo-purple">'+escapeHtml(l.source)+'</span>':'';
+        var srcClass='bg-ceo-purple/10 text-ceo-purple';
+        if(l.source){
+            var sl=l.source.toLowerCase();
+            if(sl.includes('audit'))srcClass='src-audit';
+            else if(sl.includes('retell'))srcClass='src-retell';
+            else if(sl.includes('chat')||sl.includes('bot'))srcClass='src-chatbot';
+            else if(sl.includes('web'))srcClass='src-website';
+            else if(sl.includes('manual'))srcClass='src-manual';
+        }
+        var src=l.source?'<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md '+srcClass+'">'+escapeHtml(l.source)+'</span>':'';
+        var notesHtml='';
+        if(l.notes){
+            var nid='notes-'+l.id;
+            notesHtml='<div class="lead-notes-toggle" onclick="event.stopPropagation();toggleLeadNotes(\''+nid+'\',this)"><span class="chevron">&#9656;</span> Notes</div><div class="lead-notes-body" id="'+nid+'"><div class="lead-notes-text">'+escapeHtml(l.notes)+'</div></div>';
+        }
         return '<div class="lead-card"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-ceo-text">'+escapeHtml(l.name||'Unknown')+'</span>'+src+'</div>'+
             (l.business?'<div class="text-[11px] text-ceo-textMuted mb-1">'+escapeHtml(l.business)+'</div>':'')+
             (l.phone?'<div class="text-[11px] text-ceo-textMuted mb-1"><a href="tel:'+escapeHtml(l.phone)+'" class="hover:text-ceo-blue">'+escapeHtml(l.phone)+'</a></div>':'')+
             (l.email?'<div class="text-[11px] text-ceo-textMuted mb-2"><a href="mailto:'+escapeHtml(l.email)+'" class="hover:text-ceo-blue">'+escapeHtml(l.email)+'</a></div>':'')+
+            notesHtml+
             '<div class="flex items-center justify-between mt-2"><span class="text-[9px] text-ceo-textMuted">'+timeAgo(l.created)+'</span><div class="flex gap-1">'+btns+'</div></div></div>';
     }).join('');
+}
+
+function toggleLeadNotes(id,el){
+    var body=document.getElementById(id);
+    if(!body)return;
+    body.classList.toggle('open');
+    el.classList.toggle('open');
 }
 
 async function moveLead(id,newStatus){
