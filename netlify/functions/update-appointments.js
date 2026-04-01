@@ -182,6 +182,20 @@ exports.handler = async (event) => {
             if (body.phone && process.env.AIRTABLE_API_KEY) {
                 await linkRetellTranscriptToAppointment(process.env.AIRTABLE_API_KEY, newId, body.phone);
             }
+            // Send SMS + email notification (fire-and-forget)
+            try {
+                const baseUrl = process.env.URL || 'https://thesmartlayer.com';
+                fetch(`${baseUrl}/.netlify/functions/send-appointment-notification`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: body.name || 'Unknown',
+                        date: formattedDate,
+                        type: body.type || 'Consultation',
+                        source: body.source || 'Manual'
+                    })
+                }).catch(e => console.error('Notification error:', e));
+            } catch (e) { console.error('Notification trigger error:', e); }
             return { statusCode: 200, headers, body: JSON.stringify({ success: true, id: newId }) };
         }
 
