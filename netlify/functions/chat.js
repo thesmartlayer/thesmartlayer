@@ -23,6 +23,22 @@ const BOOKING_TOOL = {
     }
 };
 
+const AUDIT_TOOL = {
+    name: "submit_audit",
+    description: "Submit a free AI Visibility Audit request. Use this when a customer wants an audit of their online presence. Collect their website URL, top competitor, core service, and contact info (email or phone). This does NOT book an appointment — it submits the audit request and notifies John.",
+    input_schema: {
+        type: "object",
+        properties: {
+            url: { type: "string", description: "Customer's website URL" },
+            rival: { type: "string", description: "Their top local competitor" },
+            service: { type: "string", description: "Their core service (e.g., tire changes, family dentistry)" },
+            contact: { type: "string", description: "Email or phone number to send the report to" },
+            name: { type: "string", description: "Customer's name or business name" }
+        },
+        required: ["url", "rival", "service", "contact"]
+    }
+};
+
 const SYSTEM_PROMPT = `You are the AI sales assistant for The Smart Layer, a local business in New Brunswick, Canada that builds AI-powered business platforms for service businesses.
 
 KEY FACTS ABOUT THE SMART LAYER:
@@ -40,7 +56,16 @@ AI VISIBILITY AUDIT (FREE):
 - We offer a free 24-hour AI Visibility Audit for any local business
 - We check: Google Business Profile, website SEO, how your business appears in ChatGPT/Perplexity/Google AI Overviews, competitor comparison, and local citations
 - You get a detailed report with scores and recommendations — no obligation
-- Just provide your website URL, top competitor, core service, and contact info
+- To submit an audit: collect website URL, top competitor, core service, and contact info, then use the submit_audit tool. Do NOT book an appointment for audits.
+- After submitting, confirm the audit is on its way and they'll have results within 24 hours
+
+AI VISIBILITY FIX (One-Time Service):
+- After the audit, if issues are found, we offer a one-time fix starting at $249
+- John reviews the audit results and fixes Google Business Profile, SEO issues, local citations, and AI search presence
+- Everything the audit flags gets addressed — typically completed within about a week
+- No subscription required — this is a standalone service
+- For ongoing monthly monitoring after the fix, the Complete plan ($399/mo) includes that
+- Only mention the fix when someone asks about fixing issues or what happens after the audit. Don't lead with it.
 
 PRICING (Founding Member Rates — locked in for early clients):
 - Starter: $149/month — Professional website, AI chatbot (24/7), customer portal, business dashboard, appointment booking, lead capture, mobile responsive, basic analytics, email support
@@ -101,25 +126,25 @@ CRITICAL — NO DOUBLE BOOKING:
 - Instead say: "Let me flag this for John to confirm — you'll get a confirmation email shortly"
 - If anything seems off after booking, direct them to contact us rather than rebooking
 
-YOUR IDENTITY — CRITICAL:
-- You are an AI ASSISTANT for The Smart Layer — NOT the founder, NOT a human team member
-- NEVER pretend to be the person they'll meet with
-- The consultation/demo will be with "John, our founder" or "our team" — make that clear
-- Say things like "I'll book you in with John" or "Our founder will walk you through that"
-- NEVER use phrases like "See you tomorrow", "I'll see you then", "I'll show you", "Looking forward to meeting you" — these imply YOU are the consultant
-- Instead say: "John will see you then" or "You're all set with John"
-- Do NOT give away detailed strategy, implementation plans, or deep technical advice
-- Tease value and redirect: "That's a great question — John can walk you through exactly how that works for your industry during the consultation"
-- Save the real expertise for the human consultation — your job is to spark interest and get the booking
-
-YOUR BEHAVIOR:
+YOUR BEHAVIOR — THIS IS CRITICAL, FOLLOW STRICTLY:
 - Be warm, friendly, and conversational — not robotic
-- Keep responses SHORT (2-3 sentences max). Don't write paragraphs.
+- Keep responses to 2-3 SHORT sentences. This is your #1 rule. NEVER write more than 4 sentences in a single response.
+- NEVER use bullet points, numbered lists, or markdown formatting (no bold, no asterisks). Write in plain conversational sentences only.
 - Ask about their business type to give relevant examples
 - Gently guide toward booking a free consultation or trying the free AI Visibility Audit
-- If asked something you don't know, say "John can cover that in detail during your consultation" 
+- If asked something you don't know, say "John can cover that in detail during your consultation"
 - Don't over-explain features — give a quick hook and push toward the booking
-- Contact: info@thesmartlayer.com or (855) 404-AIAI (2424)`;
+- When someone asks about fixing visibility/online issues, offer the one-time visibility fix (starting at $249) FIRST. Only mention monthly plans if they ask about ongoing tools like chatbots, phone agents, or portals. If they're interested in ongoing monitoring after the fix, mention the Complete plan as a natural bridge.
+- When quoting pricing for monthly plans, mention only the plan that fits — don't list all plans unless asked
+- Contact: info@thesmartlayer.com or (855) 404-AIAI (2424)
+
+YOUR IDENTITY — CRITICAL, NEVER BREAK THESE RULES:
+- You are an AI ASSISTANT for The Smart Layer — NOT the founder, NOT a human team member
+- The consultation/demo will be with "John, our founder" — make that clear
+- Say things like "I'll book you in with John" or "Our founder will walk you through that"
+- NEVER say "See you tomorrow", "I'll see you then", "I'll show you", "Looking forward to meeting you", "See you then", or "We'll see you soon" — these imply YOU are the consultant
+- ALWAYS say "John will see you then" or "You're all set with John" after booking
+- Do NOT give away detailed strategy or deep technical advice — tease value and redirect to the consultation`;
 
 // Fetch existing appointments for availability context
 async function getAvailability() {
@@ -220,6 +245,63 @@ async function createAppointment(input) {
 
     const data = await response.json();
     return data.records[0].id;
+}
+
+// Submit audit request via submit-audit function (creates lead + sends notifications)
+async function submitAudit(input) {
+    const baseUrl = process.env.URL || 'https://thesmartlayer.com';
+    const payload = {
+        url: input.url || '',
+        rival: input.rival || '',
+        service: input.service || '',
+        contact: input.contact || '',
+        smsConsent: false
+    };
+    // Add name to notes if provided
+    if (input.name) payload.url = input.url || '';
+
+    try {
+        const response = await fetch(`${baseUrl}/.netlify/functions/submit-audit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+            const err = await response.text();
+            console.error('Submit audit error:', err);
+        }
+    } catch (e) {
+        console.error('Submit audit fetch error:', e);
+    }
+
+    // Also create a lead in Airtable with the customer's name
+    const airtableKey = process.env.AIRTABLE_API_KEY;
+    if (airtableKey && input.name) {
+        try {
+            const isEmail = input.contact && input.contact.includes('@');
+            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Leads`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${airtableKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    records: [{
+                        fields: {
+                            Name: input.name,
+                            Phone: isEmail ? '' : (input.contact || ''),
+                            Email: isEmail ? input.contact : '',
+                            Source: 'Chatbot',
+                            Status: 'New',
+                            Notes: `Audit Request\nWebsite: ${input.url}\nCompetitor: ${input.rival}\nService: ${input.service}`
+                        }
+                    }]
+                })
+            });
+        } catch (e) {
+            console.error('Audit lead create error:', e);
+        }
+    }
 }
 
 // Save or update chat transcript in Airtable (upsert by sessionId)
@@ -348,10 +430,10 @@ exports.handler = async (event) => {
             },
             body: JSON.stringify({
                 model: 'claude-haiku-4-5-20251001',
-                max_tokens: 1024,
+                max_tokens: 512,
                 system: systemWithAvailability,
                 messages: anthropicMessages,
-                tools: [BOOKING_TOOL]
+                tools: [BOOKING_TOOL, AUDIT_TOOL]
             })
         });
 
@@ -374,6 +456,60 @@ exports.handler = async (event) => {
         const alreadyBooked = anthropicMessages.some(m => 
             Array.isArray(m.content) && m.content.some(c => c.type === 'tool_result')
         );
+
+        if (toolUseBlock && toolUseBlock.name === 'submit_audit') {
+            // Handle audit submission — no appointment needed
+            const prefixText = data.content
+                .filter(b => b.type === 'text')
+                .map(b => b.text)
+                .join('');
+
+            let toolResultContent;
+            try {
+                await submitAudit(toolUseBlock.input);
+                toolResultContent = `Audit request submitted successfully for ${toolUseBlock.input.url || 'their website'}. John has been notified and the report will be delivered within 24 hours.`;
+            } catch (e) {
+                console.error('Audit submit error:', e);
+                toolResultContent = 'Audit request noted. John will follow up within 24 hours.';
+            }
+
+            // Send tool result back for final response
+            const auditFollowUp = [
+                ...anthropicMessages,
+                { role: 'assistant', content: data.content },
+                { role: 'user', content: [{ type: 'tool_result', tool_use_id: toolUseBlock.id, content: toolResultContent }] }
+            ];
+
+            const auditResp = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify({
+                    model: 'claude-haiku-4-5-20251001',
+                    max_tokens: 512,
+                    system: systemWithAvailability,
+                    messages: auditFollowUp,
+                    tools: [BOOKING_TOOL, AUDIT_TOOL]
+                })
+            });
+
+            if (auditResp.ok) {
+                const auditData = await auditResp.json();
+                const reply = auditData.content
+                    .filter(b => b.type === 'text')
+                    .map(b => b.text)
+                    .join('');
+                const fullConvo = [...anthropicMessages, { role: 'assistant', content: reply || 'Audit submitted!' }];
+                await upsertTranscript(sessionId, fullConvo, null, 'Chatbot');
+                return { statusCode: 200, headers, body: JSON.stringify({ reply: reply || "Your audit request is in! You'll have your report within 24 hours." }) };
+            }
+
+            await upsertTranscript(sessionId, anthropicMessages, null, 'Chatbot');
+            return { statusCode: 200, headers, body: JSON.stringify({ reply: prefixText || "Your audit request is in! You'll have your report within 24 hours." }) };
+        }
 
         if (toolUseBlock && toolUseBlock.name === 'book_appointment' && !alreadyBooked) {
             // Extract any text Claude said before the tool call
@@ -450,10 +586,10 @@ exports.handler = async (event) => {
                 },
                 body: JSON.stringify({
                     model: 'claude-haiku-4-5-20251001',
-                    max_tokens: 1024,
+                    max_tokens: 512,
                     system: systemWithAvailability,
                     messages: followUpMessages,
-                    tools: [BOOKING_TOOL]
+                    tools: [BOOKING_TOOL, AUDIT_TOOL]
                 })
             });
 
@@ -472,7 +608,7 @@ exports.handler = async (event) => {
                 return {
                     statusCode: 200,
                     headers,
-                    body: JSON.stringify({ reply: reply || "Your appointment has been booked! We'll see you soon." })
+                    body: JSON.stringify({ reply: reply || "Your appointment has been booked! John will be in touch to confirm." })
                 };
             }
 
