@@ -81,7 +81,7 @@
         .pipeline-col-closed .pipeline-col-header{background:rgba(34,197,94,.08);border-color:#22c55e}
         .lead-card{background:rgba(22,25,34,.9);border:1px solid rgba(30,34,53,.6);border-radius:12px;padding:14px;margin:8px 0;transition:all .2s}
         .lead-card:hover{border-color:rgba(59,130,246,.3);box-shadow:0 4px 16px rgba(0,0,0,.3);transform:translateY(-1px)}
-        .status-btn{padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.05em}
+        .status-btn{padding:6px 12px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.05em;min-width:70px;text-align:center}
         .status-btn:hover{transform:translateY(-1px)}
         .status-btn-contacted{background:rgba(234,179,8,.1);border-color:rgba(234,179,8,.3);color:#eab308}
         .status-btn-closed{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#22c55e}
@@ -675,7 +675,7 @@ function renderCards(leads,col){
             (l.phone?'<div class="text-[11px] text-ceo-textMuted mb-1"><a href="tel:'+escapeHtml(l.phone)+'" class="hover:text-ceo-blue">'+escapeHtml(l.phone)+'</a></div>':'')+
             (l.email?'<div class="text-[11px] text-ceo-textMuted mb-2"><a href="mailto:'+escapeHtml(l.email)+'" class="hover:text-ceo-blue">'+escapeHtml(l.email)+'</a></div>':'')+
             notesHtml+
-            '<div class="flex items-center justify-between mt-2"><span class="text-[9px] text-ceo-textMuted">'+timeAgo(l.created)+'</span><div class="flex gap-1">'+btns+'</div></div></div>';
+            '<div class="text-[9px] text-ceo-textMuted mt-2">'+timeAgo(l.created)+'</div><div class="flex gap-2 mt-2 flex-wrap">'+btns+'</div></div>';
     }).join('');
 }
 
