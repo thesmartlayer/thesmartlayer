@@ -55,7 +55,7 @@ exports.handler = async (event) => {
     // Log to Airtable Leads (non-blocking)
     try {
       const baseId = process.env.AIRTABLE_BASE_ID || 'appI1VGevInWPeMRa';
-      await fetch(`https://api.airtable.com/v0/${baseId}/Leads`, {
+      const airtableRes = await fetch(`https://api.airtable.com/v0/${baseId}/Leads`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
@@ -74,6 +74,10 @@ exports.handler = async (event) => {
           }]
         })
       });
+      if (!airtableRes.ok) {
+        const errText = await airtableRes.text();
+        console.error('Airtable lead write failed:', airtableRes.status, errText);
+      }
     } catch (airtableErr) {
       console.error('Airtable log failed (non-critical):', airtableErr);
     }
