@@ -269,19 +269,20 @@
             chatWindow.querySelector('#sl-send-btn').onmouseover = (e) => { e.currentTarget.style.opacity = '0.85'; };
             chatWindow.querySelector('#sl-send-btn').onmouseout = (e) => { e.currentTarget.style.opacity = '1'; };
 
-            // Scroll: for bot messages, scroll to top of the new message. For user/typing, scroll to bottom.
+            // Scroll: defer until DOM has settled to prevent flash
             const msgBox = chatWindow.querySelector('#sl-msg-box');
             const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
-            if (lastMsg && lastMsg.role === 'assistant' && lastMsg.content !== '...') {
-                // Find the last bot message element and scroll it into view
-                const allMsgs = msgBox.children;
-                if (allMsgs.length > 0) {
-                    const lastEl = allMsgs[allMsgs.length - 1];
-                    lastEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            requestAnimationFrame(() => {
+                if (lastMsg && lastMsg.role === 'assistant' && lastMsg.content !== '...') {
+                    const allMsgs = msgBox.children;
+                    if (allMsgs.length > 0) {
+                        const lastEl = allMsgs[allMsgs.length - 1];
+                        lastEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                } else {
+                    msgBox.scrollTop = msgBox.scrollHeight;
                 }
-            } else {
-                msgBox.scrollTop = msgBox.scrollHeight;
-            }
+            });
         }
 
         function escapeHtml(text) {
