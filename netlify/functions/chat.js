@@ -256,6 +256,7 @@ async function submitAudit(input) {
         service: input.service || '',
         contact: input.contact || '',
         name: input.name || 'Audit Request',
+        source: 'Chatbot',
         smsConsent: false
     };
 
