@@ -56,7 +56,7 @@ AI VISIBILITY AUDIT (FREE):
 - We offer a free 24-hour AI Visibility Audit for any local business
 - We check: Google Business Profile, website SEO, how your business appears in ChatGPT/Perplexity/Google AI Overviews, competitor comparison, and local citations
 - You get a detailed report with scores and recommendations — no obligation
-- To submit an audit: collect website URL, top competitor, core service, and contact info, then use the submit_audit tool. Do NOT book an appointment for audits.
+- To submit an audit: collect the caller's name, website URL, top competitor, core service, and contact info, then use the submit_audit tool. Always ask for their name first. Do NOT book an appointment for audits.
 - After submitting, confirm the audit is on its way and they'll have results within 24 hours
 
 AI VISIBILITY FIX (One-Time Service):
@@ -255,10 +255,9 @@ async function submitAudit(input) {
         rival: input.rival || '',
         service: input.service || '',
         contact: input.contact || '',
+        name: input.name || 'Audit Request',
         smsConsent: false
     };
-    // Add name to notes if provided
-    if (input.name) payload.url = input.url || '';
 
     try {
         const response = await fetch(`${baseUrl}/.netlify/functions/submit-audit`, {
@@ -272,35 +271,6 @@ async function submitAudit(input) {
         }
     } catch (e) {
         console.error('Submit audit fetch error:', e);
-    }
-
-    // Also create a lead in Airtable with the customer's name
-    const airtableKey = process.env.AIRTABLE_API_KEY;
-    if (airtableKey && input.name) {
-        try {
-            const isEmail = input.contact && input.contact.includes('@');
-            await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Leads`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${airtableKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    records: [{
-                        fields: {
-                            Name: input.name,
-                            Phone: isEmail ? '' : (input.contact || ''),
-                            Email: isEmail ? input.contact : '',
-                            Source: 'Chatbot',
-                            Status: 'New',
-                            Notes: `Audit Request\nWebsite: ${input.url}\nCompetitor: ${input.rival}\nService: ${input.service}`
-                        }
-                    }]
-                })
-            });
-        } catch (e) {
-            console.error('Audit lead create error:', e);
-        }
     }
 }
 
