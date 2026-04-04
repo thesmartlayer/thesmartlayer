@@ -28,6 +28,7 @@ exports.handler = async (event) => {
       source: r.fields.Source || "",
       status: r.fields.Status || "",
       notes: r.fields.Notes || "",
+      session_id: r.fields.session_id || "",
       created: r.createdTime,
     }));
     return {

@@ -24,10 +24,15 @@ exports.handler = async (event) => {
     try {
         const bookingId = event.queryStringParameters && event.queryStringParameters.booking_id;
         const phone = event.queryStringParameters && event.queryStringParameters.phone;
+        const transcriptId = event.queryStringParameters && event.queryStringParameters.transcript_id;
 
         let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?sort%5B0%5D%5Bfield%5D=created_at&sort%5B0%5D%5Bdirection%5D=desc&pageSize=50`;
 
-        if (bookingId) {
+        if (transcriptId) {
+            const safeId = String(transcriptId).replace(/'/g, "\\'");
+            const filter = `{transcript_id}='${safeId}'`;
+            url += `&filterByFormula=${encodeURIComponent(filter)}`;
+        } else if (bookingId) {
             const safeId = String(bookingId).replace(/'/g, "\\'");
             const filter = `OR({booking_id}='${safeId}', FIND('${safeId}', ARRAYJOIN({booking_id}, ','))>0)`;
             url += `&filterByFormula=${encodeURIComponent(filter)}`;
