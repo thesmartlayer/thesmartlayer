@@ -333,7 +333,7 @@ async function upsertTranscript(sessionId, messages, bookingId, source) {
         const fields = {
             transcript_id: sessionId,
             booking_id: bookingId || '',
-            source: source || 'Chatbot',
+            Source: source || 'Chatbot',
             full_transcript: transcript,
             summary: summary.slice(0, 500),
             created_at: new Date().toISOString()
