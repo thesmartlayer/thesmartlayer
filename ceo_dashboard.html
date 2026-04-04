@@ -473,6 +473,11 @@ function escapeHtml(t){if(!t)return '';var d=document.createElement('div');d.tex
 <div class="event-popup" id="eventPopup" style="display:none">
     <div id="eventPopupContent"></div>
 </div>
+<!-- Lead detail popup -->
+<div class="event-popup-overlay" id="leadOverlay" style="display:none" onclick="closeLeadPopup()"></div>
+<div class="event-popup" id="leadPopup" style="display:none;max-width:420px">
+    <div id="leadPopupContent"></div>
+</div>
 <!-- Add Client Modal -->
 <div class="modal-overlay" id="addClientModal">
     <div class="modal-box" style="max-width:420px">
@@ -652,9 +657,9 @@ function renderCards(leads,col){
     if(!leads.length)return '<div class="text-center py-4"><p class="text-[10px] text-ceo-textMuted">Empty</p></div>';
     return leads.map(function(l){
         var btns='';
-        if(col==='new')btns='<button class="status-btn status-btn-contacted" onclick="moveLead(\''+l.id+'\',\'Contacted\')">Contacted</button><button class="status-btn status-btn-closed" onclick="moveLead(\''+l.id+'\',\'Closed\')">Close</button>';
-        else if(col==='contacted')btns='<button class="status-btn status-btn-closed" onclick="moveLead(\''+l.id+'\',\'Closed\')">Close</button><button class="status-btn status-btn-reopen" onclick="moveLead(\''+l.id+'\',\'New\')">Reopen</button>';
-        else btns='<button class="status-btn status-btn-reopen" onclick="moveLead(\''+l.id+'\',\'New\')">Reopen</button>';
+        if(col==='new')btns='<button class="status-btn status-btn-contacted" onclick="event.stopPropagation();moveLead(\''+l.id+'\',\'Contacted\')">Contacted</button><button class="status-btn status-btn-closed" onclick="event.stopPropagation();moveLead(\''+l.id+'\',\'Closed\')">Close</button>';
+        else if(col==='contacted')btns='<button class="status-btn status-btn-closed" onclick="event.stopPropagation();moveLead(\''+l.id+'\',\'Closed\')">Close</button><button class="status-btn status-btn-reopen" onclick="event.stopPropagation();moveLead(\''+l.id+'\',\'New\')">Reopen</button>';
+        else btns='<button class="status-btn status-btn-reopen" onclick="event.stopPropagation();moveLead(\''+l.id+'\',\'New\')">Reopen</button>';
         var srcClass='bg-ceo-purple/10 text-ceo-purple';
         if(l.source){
             var sl=l.source.toLowerCase();
@@ -670,7 +675,7 @@ function renderCards(leads,col){
             var nid='notes-'+l.id;
             notesHtml='<div class="lead-notes-toggle" onclick="event.stopPropagation();toggleLeadNotes(\''+nid+'\',this)"><span class="chevron">&#9656;</span> Notes</div><div class="lead-notes-body" id="'+nid+'"><div class="lead-notes-text">'+escapeHtml(l.notes)+'</div></div>';
         }
-        return '<div class="lead-card"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-ceo-text">'+escapeHtml(l.name||'Unknown')+'</span>'+src+'</div>'+
+        return '<div class="lead-card" onclick="showLeadPopup(\''+l.id+'\')" style="cursor:pointer"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-ceo-text">'+escapeHtml(l.name||'Unknown')+'</span>'+src+'</div>'+
             (l.business?'<div class="text-[11px] text-ceo-textMuted mb-1">'+escapeHtml(l.business)+'</div>':'')+
             (l.phone?'<div class="text-[11px] text-ceo-textMuted mb-1"><a href="tel:'+escapeHtml(l.phone)+'" class="hover:text-ceo-blue">'+escapeHtml(l.phone)+'</a></div>':'')+
             (l.email?'<div class="text-[11px] text-ceo-textMuted mb-2"><a href="mailto:'+escapeHtml(l.email)+'" class="hover:text-ceo-blue">'+escapeHtml(l.email)+'</a></div>':'')+
@@ -1782,7 +1787,7 @@ function renderActivityFeed(){
     // Add leads as activity items
     masterState.leads.forEach(function(l){
         if(!l.name&&!l.business&&!l.phone)return;
-        items.push({type:'lead',name:l.name||l.business||'Unknown',source:l.source||'',time:l.created,status:l.status||'New',phone:l.phone,email:l.email});
+        items.push({type:'lead',id:l.id,name:l.name||l.business||'Unknown',source:l.source||'',time:l.created,status:l.status||'New',phone:l.phone,email:l.email,notes:l.notes,session_id:l.session_id});
     });
     // Add appointments as activity items
     masterState.appointments.forEach(function(a){
@@ -1823,7 +1828,9 @@ function renderActivityFeed(){
             var apptTime=item.date?new Date(item.date).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
             desc=(item.apptType||'Appt')+' booked'+(apptTime?' &middot; '+apptTime:'');
         }
-        var clickAttr=(item.type==='appointment'||item.type==='revision')&&item.id?' onclick="openActivityPopup(\''+item.id+'\')" style="cursor:pointer"':'';
+        var clickAttr='';
+        if((item.type==='appointment'||item.type==='revision')&&item.id)clickAttr=' onclick="openActivityPopup(\''+item.id+'\')" style="cursor:pointer"';
+        else if(item.type==='lead'&&item.id)clickAttr=' onclick="showLeadPopup(\''+item.id+'\')" style="cursor:pointer"';
         return '<div class="activity-item"'+clickAttr+'><div class="flex items-center gap-2.5 mb-1"><i data-lucide="'+icon+'" class="w-3.5 h-3.5 text-ceo-textMuted flex-shrink-0"></i><span class="text-[11px] font-semibold text-ceo-text truncate">'+escapeHtml(item.name)+'</span><span class="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-md ml-auto flex-shrink-0 '+srcClass+'">'+escapeHtml(srcLabel)+'</span></div><div class="flex items-center justify-between"><span class="text-[10px] text-ceo-textMuted">'+desc+'</span><span class="text-[9px] text-ceo-textMuted">'+timeAgo(item.time)+'</span></div></div>';
     }).join('');
     lucide.createIcons();
@@ -1833,9 +1840,91 @@ function renderActivityFeed(){
 function openActivityPopup(id){
     var ev=calendarInstance.getEventById(id);
     if(ev){
-        // Create a fake jsEvent centered on screen
         var fakeEvent={clientX:window.innerWidth/2,clientY:window.innerHeight/3};
         showEventPopup(ev,fakeEvent);
+    }
+}
+
+// ===== LEAD POPUP =====
+function showLeadPopup(id){
+    var l=masterState.leads.find(function(x){return x.id===id});
+    if(!l)return;
+    var popup=document.getElementById('leadPopup');
+    var overlay=document.getElementById('leadOverlay');
+    var srcClass='bg-ceo-purple/10 text-ceo-purple';
+    if(l.source){
+        var sl=l.source.toLowerCase();
+        if(sl.includes('audit'))srcClass='src-audit';
+        else if(sl.includes('retell'))srcClass='src-retell';
+        else if(sl.includes('chat')||sl.includes('bot'))srcClass='src-chatbot';
+        else if(sl.includes('web'))srcClass='src-website';
+        else if(sl.includes('manual'))srcClass='src-manual';
+    }
+    var srcBadge=l.source?'<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md '+srcClass+'">'+escapeHtml(l.source)+'</span>':'';
+    var statusBadge='<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-ceo-blue/10 text-ceo-blue">'+escapeHtml(l.status||'New')+'</span>';
+
+    var html='<div class="flex items-center justify-between mb-3"><span class="text-sm font-bold text-ceo-text">'+escapeHtml(l.name||'Unknown')+'</span><div class="flex gap-1">'+srcBadge+statusBadge+'</div></div>';
+    if(l.phone)html+='<div class="text-[11px] text-ceo-textMuted mb-1"><i data-lucide="phone" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i><a href="tel:'+escapeHtml(l.phone)+'" class="hover:text-ceo-blue">'+escapeHtml(l.phone)+'</a></div>';
+    if(l.email)html+='<div class="text-[11px] text-ceo-textMuted mb-1"><i data-lucide="mail" class="w-3 h-3 inline mr-1" style="vertical-align:-2px"></i><a href="mailto:'+escapeHtml(l.email)+'" class="hover:text-ceo-blue">'+escapeHtml(l.email)+'</a></div>';
+    if(l.notes)html+='<div class="mt-2 p-2 rounded-lg bg-ceo-card"><div class="text-[9px] font-bold uppercase tracking-widest text-ceo-textMuted mb-1">Notes</div><div class="text-[11px] text-ceo-textMuted leading-relaxed" style="white-space:pre-line">'+escapeHtml(l.notes)+'</div></div>';
+    html+='<div class="text-[9px] text-ceo-textMuted mt-2">'+timeAgo(l.created)+'</div>';
+
+    // Transcript section
+    if(l.session_id){
+        html+='<button onclick="loadLeadTranscript(\''+escapeHtml(l.session_id)+'\')" id="leadTranscriptBtn" class="w-full mt-3 py-2 rounded-lg bg-ceo-purple/10 border border-ceo-purple/20 text-ceo-purple text-[11px] font-bold hover:bg-ceo-purple/20 transition-colors flex items-center justify-center gap-1.5"><i data-lucide="message-square-text" class="w-3.5 h-3.5"></i>View Chat Transcript</button>';
+        html+='<div id="leadTranscriptArea" style="display:none" class="mt-2 p-3 rounded-lg bg-ceo-bg border border-ceo-border max-h-48 overflow-y-auto"><div id="leadTranscriptContent" class="text-[11px] leading-relaxed"></div></div>';
+    }
+
+    html+='<div class="flex gap-2 mt-3"><button onclick="closeLeadPopup()" class="flex-1 py-2 rounded-lg bg-ceo-card border border-ceo-border text-[11px] text-ceo-textMuted hover:text-ceo-text transition-colors">Close</button></div>';
+
+    document.getElementById('leadPopupContent').innerHTML=html;
+    popup.style.display='block';overlay.style.display='block';
+    popup.style.left=Math.max(20,window.innerWidth/2-210)+'px';
+    popup.style.top=Math.max(20,window.innerHeight/3)+'px';
+    lucide.createIcons();
+}
+
+function closeLeadPopup(){
+    document.getElementById('leadPopup').style.display='none';
+    document.getElementById('leadOverlay').style.display='none';
+}
+
+async function loadLeadTranscript(sessionId){
+    var btn=document.getElementById('leadTranscriptBtn');
+    var area=document.getElementById('leadTranscriptArea');
+    var content=document.getElementById('leadTranscriptContent');
+    if(!btn)return;
+    btn.textContent='Loading...';btn.disabled=true;
+    try{
+        var r=await fetch('/.netlify/functions/get-transcripts?transcript_id='+encodeURIComponent(sessionId));
+        var data=await r.json();
+        if(data.transcripts&&data.transcripts.length>0){
+            var t=data.transcripts[0];
+            // Show summary if available
+            var summaryHtml='';
+            if(t.summary){
+                summaryHtml='<div class="mb-2 p-2 rounded-lg" style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.15)"><div class="text-[9px] font-bold uppercase tracking-widest text-ceo-purple mb-1">Summary</div><div class="text-[11px] text-ceo-textMuted leading-relaxed">'+escapeHtml(t.summary)+'</div></div>';
+            }
+            var lines=t.full_transcript.split('\n').map(function(line){
+                line=line.trim();if(!line)return '';
+                if(line.startsWith('Customer:')||line.startsWith('Caller:')){
+                    return '<div style="margin-bottom:8px"><span class="text-[9px] font-bold text-ceo-blue uppercase">Customer</span><div class="text-[11px] text-ceo-text mt-0.5">'+escapeHtml(line.replace(/^(Customer|Caller): /,''))+'</div></div>';
+                }else if(line.startsWith('AI Assistant:')||line.startsWith('AI Agent:')){
+                    return '<div style="margin-bottom:8px"><span class="text-[9px] font-bold text-ceo-purple uppercase">AI Assistant</span><div class="text-[11px] text-ceo-textMuted mt-0.5">'+escapeHtml(line.replace(/^(AI Assistant|AI Agent): /,''))+'</div></div>';
+                }
+                return '<div class="text-[11px] text-ceo-textMuted mb-1">'+escapeHtml(line)+'</div>';
+            }).filter(Boolean).join('');
+            content.innerHTML=summaryHtml+(lines||'<span class="text-ceo-textMuted">Empty transcript</span>');
+            area.style.display='block';
+            btn.style.display='none';
+        }else{
+            content.innerHTML='<span class="text-ceo-textMuted text-[11px]">No transcript found</span>';
+            area.style.display='block';
+            btn.style.display='none';
+        }
+    }catch(e){
+        console.error('Lead transcript load error:',e);
+        btn.textContent='Failed to load';btn.disabled=false;
     }
 }
 
