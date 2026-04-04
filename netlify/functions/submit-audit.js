@@ -18,7 +18,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { url, rival, service, contact, smsConsent, name, source } = JSON.parse(event.body || '{}');
+    const { url, rival, service, contact, smsConsent, name, source, session_id } = JSON.parse(event.body || '{}');
 
     // Determine if contact is email or phone
     const isEmail = contact && contact.includes('@');
@@ -69,7 +69,8 @@ exports.handler = async (event) => {
               Email: contactEmail,
               Source: source || 'Audit Form',
               Status: 'New',
-              Notes: notes
+              Notes: notes,
+              session_id: session_id || ''
             }
           }]
         })
