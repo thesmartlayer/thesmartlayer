@@ -248,7 +248,7 @@ async function createAppointment(input) {
 }
 
 // Submit audit request via submit-audit function (creates lead + sends notifications)
-async function submitAudit(input) {
+async function submitAudit(input, sessionId) {
     const baseUrl = process.env.URL || 'https://thesmartlayer.com';
     const payload = {
         url: input.url || '',
@@ -257,6 +257,7 @@ async function submitAudit(input) {
         contact: input.contact || '',
         name: input.name || 'Audit Request',
         source: 'Chatbot',
+        session_id: sessionId || '',
         smsConsent: false
     };
 
@@ -437,7 +438,7 @@ exports.handler = async (event) => {
 
             let toolResultContent;
             try {
-                await submitAudit(toolUseBlock.input);
+                await submitAudit(toolUseBlock.input, sessionId);
                 toolResultContent = `Audit request submitted successfully for ${toolUseBlock.input.url || 'their website'}. John has been notified and the report will be delivered within 24 hours.`;
             } catch (e) {
                 console.error('Audit submit error:', e);
