@@ -42,28 +42,50 @@ exports.handler = async (event) => {
       text: message
     });
 
-    // Log to Airtable Leads (non-blocking)
+    // Log to Airtable Leads (non-blocking, with dedup check)
     try {
       const baseId = process.env.AIRTABLE_BASE_ID || 'appI1VGevInWPeMRa';
-      await fetch(`https://api.airtable.com/v0/${baseId}/Leads`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          records: [{
-            fields: {
-              Name: callerName,
-              Phone: callerPhone,
-              Email: callerEmail !== 'No email' ? callerEmail : '',
-              Source: 'Retell-Relay',
-              Status: 'New',
-              Notes: summary
-            }
-          }]
-        })
-      });
+      
+      // Dedup: check if a lead with same name was created in last 5 minutes
+      var skipLead = false;
+      try {
+        const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        const dedupFilter = encodeURIComponent(`AND({Name}='${callerName.replace(/'/g, "\\'")}', IS_AFTER(CREATED_TIME(), '${fiveMinAgo}'))`);
+        const dedupRes = await fetch(`https://api.airtable.com/v0/${baseId}/Leads?filterByFormula=${dedupFilter}&maxRecords=1`, {
+          headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}` }
+        });
+        if (dedupRes.ok) {
+          const dedupData = await dedupRes.json();
+          if (dedupData.records && dedupData.records.length > 0) {
+            skipLead = true;
+            console.log('Dedup: skipping duplicate lead for', callerName);
+          }
+        }
+      } catch (dedupErr) {
+        console.error('Dedup check failed (non-critical):', dedupErr);
+      }
+
+      if (!skipLead) {
+        await fetch(`https://api.airtable.com/v0/${baseId}/Leads`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            records: [{
+              fields: {
+                Name: callerName,
+                Phone: callerPhone,
+                Email: callerEmail !== 'No email' ? callerEmail : '',
+                Source: 'Retell-Relay',
+                Status: 'New',
+                Notes: summary
+              }
+            }]
+          })
+        });
+      }
     } catch (airtableErr) {
       console.error('Airtable log failed (non-critical):', airtableErr);
     }
