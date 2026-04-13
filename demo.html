@@ -285,8 +285,9 @@
                 <div class="consent-group">
                     <label>
                         <input type="checkbox" name="sms-consent">
-                        <span>I agree to receive SMS messages and AI-powered calls from The Smart Layer. Message and data rates may apply. Reply STOP to opt out. <a href="/privacy.html" target="_blank">Privacy Policy</a></span>
+                        <span>I agree to receive text messages from The Smart Layer about my audit request and appointment coordination. Message frequency varies. Message and data rates may apply. Reply STOP to opt out. <a href="/privacy.html" target="_blank">Privacy Policy</a></span>
                     </label>
+                    <p style="margin-top: 0.5rem; color: #64748b; font-size: 0.75rem;">Optional: leave this unchecked if you prefer email-only follow-up.</p>
                 </div>
 
                 <button type="submit" class="btn-submit">Start My Free Audit</button>
@@ -320,6 +321,7 @@
             rival: form.querySelector('#rival').value,
             service: form.querySelector('#service').value,
             contact: form.querySelector('#contact').value,
+            source: 'Audit Form',
             smsConsent: form.querySelector('[name="sms-consent"]').checked
         };
 

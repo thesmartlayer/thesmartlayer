@@ -14,6 +14,7 @@ const BOOKING_TOOL = {
             name: { type: "string", description: "Client's full name" },
             phone: { type: "string", description: "Client's phone number (optional)" },
             email: { type: "string", description: "Client's email address (optional)" },
+            sms_consent: { type: "boolean", description: "Set true only if the client explicitly agrees to receive text messages about appointment coordination. If declined or not asked, set false." },
             date: { type: "string", description: "Appointment date and time as local Atlantic Time in format YYYY-MM-DDTHH:MM:SS. Do NOT include any timezone offset or Z suffix. Just the plain local time. Example: 2026-03-05T14:00:00 for 2pm, 2026-03-11T16:00:00 for 4pm." },
             type: { type: "string", enum: ["Consultation", "Demo", "Follow-up"], description: "Type of appointment. Default to Consultation for new prospects, Demo if they want to see the platform." },
             duration: { type: "number", description: "Duration in minutes. Default 30 for consultations, 45 for demos." },
@@ -33,7 +34,8 @@ const AUDIT_TOOL = {
             rival: { type: "string", description: "Their top local competitor" },
             service: { type: "string", description: "Their core service (e.g., tire changes, family dentistry)" },
             contact: { type: "string", description: "Email or phone number to send the report to" },
-            name: { type: "string", description: "Customer's name or business name" }
+            name: { type: "string", description: "Customer's name or business name" },
+            sms_consent: { type: "boolean", description: "Set true only if the customer explicitly agrees to receive text messages for audit follow-up and appointment coordination. If declined or not asked, set false." }
         },
         required: ["url", "rival", "service", "contact"]
     }
@@ -58,6 +60,7 @@ AI VISIBILITY AUDIT (FREE):
 - You get a detailed report with scores and recommendations — no obligation
 - To submit an audit: collect the caller's name, website URL, top competitor, core service, and contact info, then use the submit_audit tool. Always ask for their name first. Do NOT book an appointment for audits.
 - After submitting, confirm the audit is on its way and they'll have results within 24 hours
+- SMS consent rule: only ask for SMS consent when the customer wants text-based follow-up or gives a phone number for follow-up. If they decline, continue with email-only follow-up and set sms_consent to false in the submit_audit tool.
 
 AI VISIBILITY FIX (One-Time Service):
 - After the audit, if issues are found, we offer a one-time fix starting at $249
@@ -108,6 +111,7 @@ BOOKING APPOINTMENTS:
 - Confirm the date/time with them before using the tool
 - If they don't specify a time, suggest a few available slots from the availability info provided
 - Today's date is provided in the availability context below
+- SMS consent rule for booking: ask for SMS consent right before booking only if text updates may be useful. If they decline, continue booking and use email-only follow-up. Set sms_consent accordingly in the tool input.
 
 VIRTUAL VS IN-PERSON:
 - ALL consultations and demos are VIRTUAL by default (Zoom or phone call)
@@ -182,6 +186,16 @@ async function getAvailability() {
     }
 }
 
+function toBooleanConsent(value) {
+    if (value === true) return true;
+    if (value === false || value == null) return false;
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        return normalized === 'true' || normalized === 'yes' || normalized === 'y' || normalized === 'agreed' || normalized === 'opted_in';
+    }
+    return false;
+}
+
 // Create appointment in Airtable
 async function createAppointment(input) {
     const airtableKey = process.env.AIRTABLE_API_KEY;
@@ -217,6 +231,13 @@ async function createAppointment(input) {
     }
     dateStr = dateStr + offset;
 
+    const hasConsentValue = input.sms_consent !== undefined && input.sms_consent !== null && `${input.sms_consent}` !== '';
+    const smsConsent = toBooleanConsent(input.sms_consent);
+    const consentTag = `SMS Consent: ${smsConsent ? 'Yes' : 'No'} (source: chatbot, captured: ${new Date().toISOString()})`;
+    const notesWithConsent = hasConsentValue
+        ? (input.notes ? `${input.notes}\n${consentTag}` : consentTag)
+        : (input.notes || '');
+
     const fields = {
         Name: input.name,
         Date: dateStr,
@@ -227,7 +248,7 @@ async function createAppointment(input) {
     };
     if (input.phone) fields.Phone = input.phone;
     if (input.email) fields.Email = input.email;
-    if (input.notes) fields.Notes = input.notes;
+    if (notesWithConsent) fields.Notes = notesWithConsent;
 
     const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}`, {
         method: 'POST',
@@ -258,7 +279,7 @@ async function submitAudit(input, sessionId) {
         name: input.name || 'Audit Request',
         source: 'Chatbot',
         session_id: sessionId || '',
-        smsConsent: false
+        smsConsent: toBooleanConsent(input.sms_consent)
     };
 
     try {

@@ -233,26 +233,99 @@ faqQuestions.forEach(question => {
 });
 
 // ==========================================
-// FORM SUBMISSION (Contact Form)
+// FORM SUBMISSION (Contact + Audit Forms)
 // ==========================================
+async function postNetlifyForm(form) {
+    const formData = new FormData(form);
+    const res = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(formData).toString()
+    });
+    if (!res.ok) throw new Error('Netlify form submission failed');
+    return res;
+}
+
 const contactForm = document.getElementById('contact-form');
-
 if (contactForm) {
-    contactForm.addEventListener('submit', (e) => {
+    contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitBtn = contactForm.querySelector('.form-submit');
+        const originalText = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+        }
 
-        // Get form data
-        const formData = new FormData(contactForm);
-        const data = Object.fromEntries(formData);
+        const payload = {
+            name: (document.getElementById('name') || {}).value || '',
+            business: (document.getElementById('business') || {}).value || '',
+            phone: (document.getElementById('phone') || {}).value || '',
+            email: (document.getElementById('email') || {}).value || '',
+            industry: (document.getElementById('industry') || {}).value || '',
+            message: (document.getElementById('message') || {}).value || '',
+            smsConsent: !!contactForm.querySelector('[name="sms-consent"]') && contactForm.querySelector('[name="sms-consent"]').checked
+        };
 
-        console.log('Form submitted:', data);
+        try {
+            await postNetlifyForm(contactForm);
+            await fetch('/.netlify/functions/submit-contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            alert('Thanks! Your request is in. We will follow up by email, and by text only if you opted in.');
+            contactForm.reset();
+        } catch (err) {
+            console.error('Contact form submit error:', err);
+            alert('Something went wrong. Please email info@thesmartlayer.com or call (855) 404-2424.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+    });
+}
 
-        // Here you would typically send the data to your backend
-        // For now, just show a success message
-        alert('Thank you for your interest! We\'ll be in touch soon.');
+const auditForm = document.getElementById('audit-form');
+if (auditForm) {
+    auditForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = auditForm.querySelector('.audit-submit');
+        const originalText = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+        }
 
-        // Reset form
-        contactForm.reset();
+        const payload = {
+            url: (document.getElementById('audit-url') || {}).value || '',
+            rival: (document.getElementById('audit-rival') || {}).value || '',
+            service: (document.getElementById('audit-service') || {}).value || '',
+            contact: (document.getElementById('audit-contact') || {}).value || '',
+            source: 'Audit Form',
+            smsConsent: !!auditForm.querySelector('[name="sms-consent"]') && auditForm.querySelector('[name="sms-consent"]').checked
+        };
+
+        try {
+            await postNetlifyForm(auditForm);
+            await fetch('/.netlify/functions/submit-audit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            alert('Thanks! Your free audit request is in. We will follow up by email, and by text only if you opted in.');
+            auditForm.reset();
+        } catch (err) {
+            console.error('Audit form submit error:', err);
+            alert('Something went wrong. Please email info@thesmartlayer.com or call (855) 404-2424.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
     });
 }
 

@@ -8,6 +8,23 @@ function normalizePhone(phone) {
     return phone.replace(/\D/g, '').slice(-10);
 }
 
+function parseSmsConsent(value) {
+    if (value === undefined || value === null || value === '') return null;
+    if (value === true) return true;
+    if (value === false) return false;
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        return normalized === 'true' || normalized === 'yes' || normalized === 'y' || normalized === 'agreed' || normalized === 'opted_in';
+    }
+    return null;
+}
+
+function appendConsentNote(notes, smsConsent, sourceLabel) {
+    const stamp = new Date().toISOString();
+    const consentLine = `SMS Consent: ${smsConsent ? 'Yes' : 'No'} (source: ${sourceLabel || 'unknown'}, captured: ${stamp})`;
+    return notes ? `${notes}\n${consentLine}` : consentLine;
+}
+
 async function linkRetellTranscriptToAppointment(airtableKey, newAppointmentId, appointmentPhone) {
     const norm = normalizePhone(appointmentPhone);
     if (!norm || !newAppointmentId || !airtableKey) return;
@@ -125,6 +142,10 @@ exports.handler = async (event) => {
 
         // --- CREATE ACTION ---
         if (action === 'create') {
+            const smsConsent = parseSmsConsent(body.smsConsent);
+            const notesWithConsent = smsConsent === null
+                ? (body.notes || '')
+                : appendConsentNote(body.notes || '', smsConsent, body.source || 'Manual');
             // Server-side validation: reject past dates and out-of-hours bookings
             const validationError = validateAppointmentTime(body.date);
             if (validationError) {
@@ -169,7 +190,7 @@ exports.handler = async (event) => {
                             Phone: body.phone || '',
                             Email: body.email || '',
                             Type: body.type || 'Consultation',
-                            Notes: body.notes || '',
+                            Notes: notesWithConsent,
                             Source: body.source || 'Manual',
                             Status: 'Scheduled' 
                         } 
@@ -196,6 +217,28 @@ exports.handler = async (event) => {
                     })
                 }).catch(e => console.error('Notification error:', e));
             } catch (e) { console.error('Notification trigger error:', e); }
+            // Optional customer-facing SMS (gated by explicit consent)
+            try {
+                const shouldNotifyCustomer = !!body.notifyCustomerSms;
+                if (shouldNotifyCustomer && smsConsent && body.phone) {
+                    const baseUrl = process.env.URL || 'https://thesmartlayer.com';
+                    fetch(`${baseUrl}/.netlify/functions/send-customer-appointment-sms`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: body.name || 'there',
+                            date: formattedDate,
+                            type: body.type || 'Consultation',
+                            phone: body.phone,
+                            smsConsent: true
+                        })
+                    }).catch(e => console.error('Customer SMS error:', e));
+                } else if (shouldNotifyCustomer && smsConsent !== true) {
+                    console.log('Customer SMS skipped: no consent provided for appointment', newId);
+                }
+            } catch (e) {
+                console.error('Customer SMS trigger error:', e);
+            }
             return { statusCode: 200, headers, body: JSON.stringify({ success: true, id: newId }) };
         }
 

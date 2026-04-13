@@ -19,6 +19,8 @@ exports.handler = async (event) => {
 
   try {
     const { url, rival, service, contact, smsConsent, name, source, session_id } = JSON.parse(event.body || '{}');
+    const consent = !!smsConsent;
+    const consentStamp = new Date().toISOString();
 
     // Determine if contact is email or phone
     const isEmail = contact && contact.includes('@');
@@ -29,9 +31,9 @@ exports.handler = async (event) => {
     const alertPhone = process.env.ALERT_PHONE;
     const alertEmail = process.env.ALERT_EMAIL || 'john@thesmartlayer.com';
 
-    const notes = `Website: ${url}\nCompetitor: ${rival}\nCore Service: ${service}\nSMS Consent: ${smsConsent ? 'Yes' : 'No'}`;
+    const notes = `Website: ${url}\nCompetitor: ${rival}\nCore Service: ${service}\nSMS Consent: ${consent ? 'Yes' : 'No'}\nSMS Consent Timestamp: ${consentStamp}`;
 
-    const message = `📋 New Audit Request\nName: ${displayName}\nContact: ${contact}\nWebsite: ${url}\nCompetitor: ${rival}\nService: ${service}\nSMS Consent: ${smsConsent ? 'Yes' : 'No'}`;
+    const message = `📋 New Audit Request\nName: ${displayName}\nContact: ${contact}\nWebsite: ${url}\nCompetitor: ${rival}\nService: ${service}\nSMS Consent: ${consent ? 'Yes' : 'No'}`;
 
     // Send SMS via Twilio
     const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
